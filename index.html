@@ -2,28 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
   <meta name="theme-color" content="#050505">
+
   <title>Mobile FPS</title>
 
   <style>
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     html,
     body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
       background: #050505;
-      color: white;
-      font-family: Arial, sans-serif;
       touch-action: none;
-      user-select: none;
+      font-family: Arial, sans-serif;
     }
 
     #game {
@@ -31,40 +37,24 @@
       width: 100vw;
       height: 100vh;
       height: 100dvh;
-      background:
-        radial-gradient(circle at center, #252525 0%, #111 45%, #050505 100%);
       overflow: hidden;
+      background: #000;
     }
 
-    /* Game viewport */
-    #game-view {
+    #screen {
       position: absolute;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: block;
+      image-rendering: pixelated;
     }
 
-    #game-view::before {
-      content: "MOBILE FPS";
-      font-size: clamp(28px, 7vw, 70px);
-      font-weight: 900;
-      letter-spacing: 6px;
-      color: #333;
-      text-shadow: 3px 3px 0 #000;
-    }
+    /* =========================
+       CROSSHAIR
+       ========================= */
 
-    #game-view::after {
-      content: "ENGINE LOADING";
-      position: absolute;
-      margin-top: 100px;
-      font-size: 12px;
-      letter-spacing: 3px;
-      color: #555;
-    }
-
-    /* Crosshair */
     #crosshair {
       position: absolute;
       left: 50%;
@@ -73,21 +63,21 @@
       height: 24px;
       transform: translate(-50%, -50%);
       pointer-events: none;
-      z-index: 5;
+      z-index: 20;
     }
 
     #crosshair::before,
     #crosshair::after {
       content: "";
       position: absolute;
-      background: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.8);
     }
 
     #crosshair::before {
       width: 24px;
       height: 2px;
-      top: 11px;
       left: 0;
+      top: 11px;
     }
 
     #crosshair::after {
@@ -97,75 +87,105 @@
       top: 0;
     }
 
-    /* Right thumb look area */
+    /* =========================
+       LOOK ZONE
+       ========================= */
+
     #look-zone {
       position: absolute;
-      top: 80px;
+      top: 70px;
       right: 0;
-      width: 58%;
-      bottom: 75px;
-      z-index: 4;
+      width: 60vw;
+      height: 60vh;
+      z-index: 5;
       touch-action: none;
     }
 
-    /* Top HUD */
-    #top-hud {
+    /* =========================
+       TOP HUD
+       ========================= */
+
+    #mission {
       position: absolute;
       top: 12px;
       left: 12px;
-      right: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      z-index: 10;
-      pointer-events: none;
-    }
+      z-index: 30;
 
-    .hud-box {
-      background: rgba(0,0,0,0.65);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 6px;
       padding: 7px 10px;
-      font-weight: bold;
+
+      color: white;
+      background: rgba(0,0,0,0.65);
+
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+
       font-size: 13px;
+      font-weight: bold;
+
       text-shadow: 2px 2px 0 #000;
     }
 
     #pause {
-      pointer-events: auto;
-      width: 42px;
-      height: 42px;
-      border: 1px solid rgba(255,255,255,0.35);
+      position: absolute;
+      top: 12px;
+      right: 12px;
+
+      width: 44px;
+      height: 44px;
+
+      z-index: 40;
+
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 7px;
-      background: rgba(0,0,0,0.7);
+
+      background: rgba(0,0,0,0.65);
       color: white;
+
       font-size: 18px;
-      z-index: 30;
+
+      touch-action: none;
     }
 
-    /* Bottom HUD */
-    #bottom-hud {
+    /* =========================
+       BOTTOM HUD
+       ========================= */
+
+    #hud {
       position: absolute;
-      bottom: 10px;
+
       left: 10px;
       right: 10px;
+      bottom: 8px;
+
       height: 55px;
+
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      z-index: 20;
+      align-items: center;
+
+      z-index: 30;
+
       pointer-events: none;
     }
 
     .stat {
-      min-width: 95px;
-      padding: 7px 12px;
-      background: rgba(0,0,0,0.8);
+      min-width: 90px;
+
+      padding: 5px 10px;
+
+      text-align: center;
+
+      color: white;
+
+      background: rgba(0,0,0,0.75);
+
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 6px;
-      text-align: center;
-      font-size: 12px;
+
+      font-size: 10px;
       font-weight: bold;
+
+      text-shadow: 2px 2px 0 #000;
     }
 
     .stat strong {
@@ -174,99 +194,165 @@
     }
 
     #weapon {
-      min-width: 130px;
-      font-size: 13px;
-      letter-spacing: 1px;
+      min-width: 125px;
     }
 
-    /* Touch controls */
-    .control {
-      position: absolute;
-      z-index: 30;
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      text-shadow: 2px 2px 0 #000;
-      border: 2px solid rgba(255,255,255,0.3);
-      background: rgba(0,0,0,0.42);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.04);
-      touch-action: none;
-    }
+    /* =========================
+       JOYSTICK
+       ========================= */
 
-    .control:active,
-    .control.active {
-      background: rgba(255,255,255,0.2);
-      transform: scale(0.94);
-    }
-
-    /* Movement joystick */
     #joystick {
+      position: absolute;
+
       left: 25px;
-      bottom: 85px;
+      bottom: 80px;
+
       width: 125px;
       height: 125px;
+
+      z-index: 40;
+
       border-radius: 50%;
+
+      border: 2px solid rgba(255,255,255,0.3);
+
+      background: rgba(0,0,0,0.35);
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      touch-action: none;
     }
 
     #joystick-knob {
       width: 55px;
       height: 55px;
+
       border-radius: 50%;
+
       background: rgba(255,255,255,0.18);
-      border: 2px solid rgba(255,255,255,0.45);
-      transition: transform 0.05s linear;
+
+      border: 2px solid rgba(255,255,255,0.5);
+
+      transform: translate(0,0);
     }
 
-    /* Fire */
+    /* =========================
+       FIRE
+       ========================= */
+
     #fire {
+      position: absolute;
+
       right: 25px;
-      bottom: 90px;
-      width: 85px;
-      height: 85px;
+      bottom: 85px;
+
+      width: 88px;
+      height: 88px;
+
+      z-index: 40;
+
       border-radius: 50%;
-      font-size: 18px;
+
+      border: 2px solid rgba(255,255,255,0.4);
+
+      background: rgba(0,0,0,0.5);
+
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      text-shadow: 2px 2px 0 #000;
+
+      touch-action: none;
     }
 
-    /* Use */
+    #fire.active {
+      transform: scale(0.92);
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* =========================
+       USE
+       ========================= */
+
     #use {
-      right: 125px;
+      position: absolute;
+
+      right: 130px;
       bottom: 105px;
+
       width: 58px;
       height: 58px;
+
+      z-index: 40;
+
       border-radius: 50%;
-      font-size: 12px;
+
+      border: 2px solid rgba(255,255,255,0.3);
+
+      background: rgba(0,0,0,0.5);
+
+      color: white;
+
+      font-size: 11px;
+      font-weight: bold;
+
+      touch-action: none;
     }
 
-    /* Weapon buttons */
-    #weapon-up {
+    /* =========================
+       WEAPON BUTTONS
+       ========================= */
+
+    .weapon-button {
+      position: absolute;
+
       right: 30px;
-      bottom: 190px;
-      width: 45px;
-      height: 45px;
+
+      width: 46px;
+      height: 46px;
+
+      z-index: 40;
+
       border-radius: 7px;
-      font-size: 20px;
+
+      border: 2px solid rgba(255,255,255,0.3);
+
+      background: rgba(0,0,0,0.5);
+
+      color: white;
+
+      font-size: 18px;
+
+      touch-action: none;
+    }
+
+    #weapon-up {
+      bottom: 190px;
     }
 
     #weapon-down {
-      right: 30px;
-      bottom: 240px;
-      width: 45px;
-      height: 45px;
-      border-radius: 7px;
-      font-size: 20px;
+      bottom: 242px;
     }
 
-    /* Pause overlay */
+    /* =========================
+       PAUSE SCREEN
+       ========================= */
+
     #pause-screen {
       position: absolute;
       inset: 0;
+
       z-index: 100;
+
       display: none;
-      align-items: center;
+
       justify-content: center;
+      align-items: center;
+
       background: rgba(0,0,0,0.85);
     }
 
@@ -275,10 +361,17 @@
     }
 
     .pause-panel {
-      width: min(80%, 400px);
+      width: 70vw;
+      max-width: 400px;
+
       padding: 30px;
+
       text-align: center;
+
+      color: white;
+
       background: #111;
+
       border: 2px solid #555;
       border-radius: 10px;
     }
@@ -288,43 +381,20 @@
       letter-spacing: 4px;
     }
 
-    .resume {
-      margin-top: 20px;
+    #resume {
       padding: 14px 30px;
+
       border: 0;
       border-radius: 6px;
+
       background: #333;
+
       color: white;
-      font-weight: bold;
+
       font-size: 16px;
+      font-weight: bold;
     }
 
-    /* Smaller phones */
-    @media (max-width: 500px) {
-      #joystick {
-        width: 105px;
-        height: 105px;
-        left: 15px;
-        bottom: 80px;
-      }
-
-      #joystick-knob {
-        width: 48px;
-        height: 48px;
-      }
-
-      #fire {
-        width: 72px;
-        height: 72px;
-        right: 15px;
-        bottom: 82px;
-      }
-
-      #use {
-        right: 100px;
-        bottom: 95px;
-      }
-    }
   </style>
 </head>
 
@@ -332,34 +402,57 @@
 
 <div id="game">
 
-  <div id="game-view"></div>
-
-  <div id="crosshair"></div>
+  <canvas id="screen"></canvas>
 
   <div id="look-zone"></div>
 
-  <div id="top-hud">
-    <div class="hud-box">MISSION 01</div>
-    <button id="pause">Ⅱ</button>
+  <div id="crosshair"></div>
+
+  <div id="mission">
+    MISSION 01
   </div>
 
-  <div id="joystick" class="control">
+  <button id="pause">
+    Ⅱ
+  </button>
+
+  <div id="joystick">
     <div id="joystick-knob"></div>
   </div>
 
-  <button id="fire" class="control">FIRE</button>
-  <button id="use" class="control">USE</button>
+  <button id="fire">
+    FIRE
+  </button>
 
-  <button id="weapon-up" class="control">▲</button>
-  <button id="weapon-down" class="control">▼</button>
+  <button id="use">
+    USE
+  </button>
 
-  <div id="bottom-hud">
+  <button
+    id="weapon-up"
+    class="weapon-button"
+  >
+    ▲
+  </button>
+
+  <button
+    id="weapon-down"
+    class="weapon-button"
+  >
+    ▼
+  </button>
+
+  <div id="hud">
+
     <div class="stat">
       HEALTH
       <strong id="health">100</strong>
     </div>
 
-    <div class="stat" id="weapon">
+    <div
+      class="stat"
+      id="weapon"
+    >
       PISTOL
       <strong id="ammo">50</strong>
     </div>
@@ -368,317 +461,1168 @@
       ARMOUR
       <strong id="armour">0</strong>
     </div>
+
   </div>
 
   <div id="pause-screen">
+
     <div class="pause-panel">
+
       <h1>PAUSED</h1>
-      <p>Mission suspended.</p>
-      <button class="resume" id="resume">RESUME</button>
+
+      <p>
+        Mission suspended.
+      </p>
+
+      <button id="resume">
+        RESUME
+      </button>
+
     </div>
+
   </div>
 
 </div>
 
 <script>
 
-  const fire = document.getElementById("fire");
-  const use = document.getElementById("use");
-  const pause = document.getElementById("pause");
-  const resume = document.getElementById("resume");
+  /* =====================================================
+     CANVAS
+     ===================================================== */
 
-  const pauseScreen = document.getElementById("pause-screen");
+  const canvas =
+    document.getElementById("screen");
 
-  const lookZone = document.getElementById("look-zone");
+  const ctx =
+    canvas.getContext("2d");
 
-  const joystick = document.getElementById("joystick");
-  const knob = document.getElementById("joystick-knob");
+  ctx.imageSmoothingEnabled = false;
 
-  let ammo = 50;
 
-  /* =========================
-     GAME INPUT STATE
-     ========================= */
+  function resizeCanvas() {
 
-  const input = {
-    moveX: 0,
-    moveY: 0,
-    lookX: 0,
-    lookY: 0,
-    firing: false,
-    use: false
-  };
+    canvas.width =
+      Math.floor(window.innerWidth / 2);
 
-  /* =========================
-     BUTTON FEEDBACK
-     ========================= */
-
-  function buttonFeedback(button) {
-
-    button.classList.add("active");
-
-    setTimeout(() => {
-      button.classList.remove("active");
-    }, 120);
+    canvas.height =
+      Math.floor(window.innerHeight / 2);
 
   }
 
-  /* =========================
-     FIRE
-     ========================= */
+  resizeCanvas();
 
-  fire.addEventListener("pointerdown", (event) => {
+  window.addEventListener(
+    "resize",
+    resizeCanvas
+  );
 
-    event.preventDefault();
 
-    buttonFeedback(fire);
+  /* =====================================================
+     WORLD
+     ===================================================== */
 
-    input.firing = true;
+  /*
+    0 = empty
+    1 = wall
+    2 = doorway
+  */
 
-    if (ammo > 0) {
+  const map = [
 
-      ammo--;
+    [1,1,1,1,1,1,1,1,1,1],
 
-      document.getElementById("ammo").textContent = ammo;
+    [1,0,0,0,0,0,0,0,0,1],
 
-    }
+    [1,0,1,1,1,0,1,1,0,1],
 
-  });
+    [1,0,1,0,0,0,0,1,0,1],
 
-  fire.addEventListener("pointerup", () => {
+    [1,0,1,0,1,2,1,1,0,1],
 
-    input.firing = false;
+    [1,0,0,0,0,0,0,0,0,1],
 
-  });
+    [1,0,1,1,1,1,1,0,0,1],
 
-  fire.addEventListener("pointercancel", () => {
+    [1,0,0,0,0,0,0,0,0,1],
 
-    input.firing = false;
+    [1,0,0,0,0,0,0,0,0,1],
 
-  });
+    [1,1,1,1,1,1,1,1,1,1]
 
-  /* =========================
-     USE
-     ========================= */
+  ];
 
-  use.addEventListener("pointerdown", (event) => {
 
-    event.preventDefault();
+  const TILE = 1;
 
-    buttonFeedback(use);
 
-    input.use = true;
+  /* =====================================================
+     PLAYER
+     ===================================================== */
 
-    setTimeout(() => {
+  const player = {
 
-      input.use = false;
+    x: 2.5,
 
-    }, 150);
+    y: 7.5,
 
-  });
+    angle: 0,
 
-  /* =========================
-     PAUSE
-     ========================= */
+    moveSpeed: 2.4,
 
-  pause.addEventListener("pointerdown", (event) => {
+    turnSpeed: 0.003
 
-    event.preventDefault();
+  };
 
-    pauseScreen.classList.add("visible");
 
-  });
+  /* =====================================================
+     ENEMY
+     ===================================================== */
 
-  resume.addEventListener("pointerdown", (event) => {
+  const enemy = {
 
-    event.preventDefault();
+    x: 7.5,
 
-    pauseScreen.classList.remove("visible");
+    y: 3.5,
 
-  });
+    alive: true,
 
-  /* =========================
-     MOVEMENT JOYSTICK
-     ========================= */
+    hitTimer: 0
+
+  };
+
+
+  /* =====================================================
+     INPUT
+     ===================================================== */
+
+  const input = {
+
+    moveX: 0,
+
+    moveY: 0,
+
+    lookX: 0,
+
+    lookY: 0,
+
+    firing: false,
+
+    use: false
+
+  };
+
+
+  window.gameInput = input;
+
+
+  /* =====================================================
+     JOYSTICK
+     ===================================================== */
+
+  const joystick =
+    document.getElementById("joystick");
+
+  const knob =
+    document.getElementById("joystick-knob");
 
   let joystickActive = false;
 
-  joystick.addEventListener("pointerdown", (event) => {
 
-    event.preventDefault();
+  joystick.addEventListener(
+    "pointerdown",
+    event => {
 
-    joystickActive = true;
+      event.preventDefault();
 
-    joystick.setPointerCapture(event.pointerId);
+      joystickActive = true;
 
-    moveJoystick(event);
+      joystick.setPointerCapture(
+        event.pointerId
+      );
 
-  });
+      updateJoystick(event);
 
-  joystick.addEventListener("pointermove", (event) => {
+    }
+  );
 
-    if (!joystickActive) return;
 
-    event.preventDefault();
+  joystick.addEventListener(
+    "pointermove",
+    event => {
 
-    moveJoystick(event);
+      if (!joystickActive)
+        return;
 
-  });
+      event.preventDefault();
 
-  joystick.addEventListener("pointerup", resetJoystick);
+      updateJoystick(event);
 
-  joystick.addEventListener("pointercancel", resetJoystick);
+    }
+  );
 
-  function moveJoystick(event) {
 
-    const rect = joystick.getBoundingClientRect();
+  joystick.addEventListener(
+    "pointerup",
+    resetJoystick
+  );
 
-    const centreX = rect.width / 2;
-    const centreY = rect.height / 2;
 
-    let x = event.clientX - rect.left - centreX;
-    let y = event.clientY - rect.top - centreY;
+  joystick.addEventListener(
+    "pointercancel",
+    resetJoystick
+  );
 
-    const max = rect.width * 0.28;
 
-    const distance = Math.sqrt(x * x + y * y);
+  function updateJoystick(event) {
+
+    const rect =
+      joystick.getBoundingClientRect();
+
+    const centreX =
+      rect.width / 2;
+
+    const centreY =
+      rect.height / 2;
+
+    let x =
+      event.clientX -
+      rect.left -
+      centreX;
+
+    let y =
+      event.clientY -
+      rect.top -
+      centreY;
+
+    const max =
+      rect.width * 0.28;
+
+    const distance =
+      Math.sqrt(
+        x * x +
+        y * y
+      );
 
     if (distance > max) {
 
-      x = x / distance * max;
-      y = y / distance * max;
+      x =
+        x / distance *
+        max;
+
+      y =
+        y / distance *
+        max;
 
     }
 
     knob.style.transform =
-      `translate(${x}px, ${y}px)`;
+      "translate(" +
+      x +
+      "px," +
+      y +
+      "px)";
 
-    /* Normalised movement values */
+    input.moveX =
+      x / max;
 
-    input.moveX = x / max;
-    input.moveY = y / max;
+    input.moveY =
+      y / max;
 
   }
+
 
   function resetJoystick() {
 
     joystickActive = false;
 
     knob.style.transform =
-      "translate(0, 0)";
+      "translate(0,0)";
 
     input.moveX = 0;
+
     input.moveY = 0;
 
   }
 
-  /* =========================
-     RIGHT THUMB LOOK
-     ========================= */
+
+  /* =====================================================
+     LOOK
+     ===================================================== */
+
+  const lookZone =
+    document.getElementById("look-zone");
 
   let lookActive = false;
 
   let lastLookX = 0;
-  let lastLookY = 0;
 
-  lookZone.addEventListener("pointerdown", (event) => {
 
-    event.preventDefault();
+  lookZone.addEventListener(
+    "pointerdown",
+    event => {
 
-    lookActive = true;
+      event.preventDefault();
 
-    lookZone.setPointerCapture(event.pointerId);
+      lookActive = true;
 
-    lastLookX = event.clientX;
-    lastLookY = event.clientY;
+      lookZone.setPointerCapture(
+        event.pointerId
+      );
 
-  });
+      lastLookX =
+        event.clientX;
 
-  lookZone.addEventListener("pointermove", (event) => {
+    }
+  );
 
-    if (!lookActive) return;
 
-    event.preventDefault();
+  lookZone.addEventListener(
+    "pointermove",
+    event => {
 
-    const currentX = event.clientX;
-    const currentY = event.clientY;
+      if (!lookActive)
+        return;
 
-    const deltaX =
-      currentX - lastLookX;
+      event.preventDefault();
 
-    const deltaY =
-      currentY - lastLookY;
+      const deltaX =
+        event.clientX -
+        lastLookX;
 
-    /*
-      Look sensitivity.
-      We can tune this later.
-    */
+      player.angle +=
+        deltaX *
+        player.turnSpeed *
+        100;
 
-    input.lookX =
-      deltaX * 0.7;
+      lastLookX =
+        event.clientX;
 
-    input.lookY =
-      deltaY * 0.7;
+    }
+  );
 
-    lastLookX = currentX;
-    lastLookY = currentY;
 
-  });
+  lookZone.addEventListener(
+    "pointerup",
+    () => {
 
-  lookZone.addEventListener("pointerup", resetLook);
+      lookActive = false;
 
-  lookZone.addEventListener("pointercancel", resetLook);
+    }
+  );
 
-  function resetLook() {
 
-    lookActive = false;
+  lookZone.addEventListener(
+    "pointercancel",
+    () => {
 
-    input.lookX = 0;
-    input.lookY = 0;
+      lookActive = false;
+
+    }
+  );
+
+
+  /* =====================================================
+     COLLISION
+     ===================================================== */
+
+  function isWall(x,y) {
+
+    const mapX =
+      Math.floor(x);
+
+    const mapY =
+      Math.floor(y);
+
+    if (
+      mapY < 0 ||
+      mapY >= map.length ||
+      mapX < 0 ||
+      mapX >= map[0].length
+    ) {
+
+      return true;
+
+    }
+
+    return map[mapY][mapX] === 1;
 
   }
 
-  /* =========================
-     WEAPON BUTTONS
-     ========================= */
 
-  document.getElementById("weapon-up")
-    .addEventListener("pointerdown", (event) => {
+  function movePlayer(
+    dx,
+    dy
+  ) {
+
+    const newX =
+      player.x + dx;
+
+    const newY =
+      player.y + dy;
+
+
+    if (!isWall(newX,player.y)) {
+
+      player.x =
+        newX;
+
+    }
+
+
+    if (!isWall(player.x,newY)) {
+
+      player.y =
+        newY;
+
+    }
+
+  }
+
+
+  /* =====================================================
+     FIRE
+     ===================================================== */
+
+  const fireButton =
+    document.getElementById("fire");
+
+  let ammo = 50;
+
+
+  fireButton.addEventListener(
+    "pointerdown",
+    event => {
 
       event.preventDefault();
 
-      buttonFeedback(
-        document.getElementById("weapon-up")
+      fireButton.classList.add(
+        "active"
       );
 
-    });
+      input.firing = true;
 
-  document.getElementById("weapon-down")
-    .addEventListener("pointerdown", (event) => {
+      fireWeapon();
+
+    }
+  );
+
+
+  fireButton.addEventListener(
+    "pointerup",
+    () => {
+
+      input.firing = false;
+
+      fireButton.classList.remove(
+        "active"
+      );
+
+    }
+  );
+
+
+  fireButton.addEventListener(
+    "pointercancel",
+    () => {
+
+      input.firing = false;
+
+      fireButton.classList.remove(
+        "active"
+      );
+
+    }
+  );
+
+
+  function fireWeapon() {
+
+    if (ammo <= 0)
+      return;
+
+    ammo--;
+
+    document.getElementById(
+      "ammo"
+    ).textContent =
+      ammo;
+
+
+    if (!enemy.alive)
+      return;
+
+
+    const dx =
+      enemy.x -
+      player.x;
+
+    const dy =
+      enemy.y -
+      player.y;
+
+
+    const distance =
+      Math.sqrt(
+        dx * dx +
+        dy * dy
+      );
+
+
+    let enemyAngle =
+      Math.atan2(
+        dy,
+        dx
+      );
+
+
+    let difference =
+      enemyAngle -
+      player.angle;
+
+
+    while (
+      difference >
+      Math.PI
+    ) {
+
+      difference -=
+        Math.PI * 2;
+
+    }
+
+
+    while (
+      difference <
+      -Math.PI
+    ) {
+
+      difference +=
+        Math.PI * 2;
+
+    }
+
+
+    /*
+      If the enemy is roughly
+      in the centre of the screen,
+      the shot hits.
+    */
+
+    if (
+      Math.abs(difference) <
+      0.12 &&
+      distance < 12
+    ) {
+
+      enemy.hitTimer =
+        0.2;
+
+      enemy.alive = false;
+
+    }
+
+  }
+
+
+  /* =====================================================
+     USE
+     ===================================================== */
+
+  const useButton =
+    document.getElementById("use");
+
+
+  useButton.addEventListener(
+    "pointerdown",
+    event => {
 
       event.preventDefault();
 
-      buttonFeedback(
-        document.getElementById("weapon-down")
+      input.use = true;
+
+      setTimeout(
+        () => {
+          input.use = false;
+        },
+        150
       );
 
-    });
+    }
+  );
 
-  /* =========================
-     GLOBAL INPUT
-     ========================= */
 
-  /*
-    Expose the input system globally.
+  /* =====================================================
+     PAUSE
+     ===================================================== */
 
-    The WASM engine can be connected
-    to this later.
-  */
+  const pause =
+    document.getElementById("pause");
 
-  window.gameInput = input;
+  const resume =
+    document.getElementById("resume");
 
-  console.log(
-    "Mobile FPS input system ready"
+  const pauseScreen =
+    document.getElementById(
+      "pause-screen"
+    );
+
+  let paused = false;
+
+
+  pause.addEventListener(
+    "pointerdown",
+    event => {
+
+      event.preventDefault();
+
+      paused = true;
+
+      pauseScreen.classList.add(
+        "visible"
+      );
+
+    }
+  );
+
+
+  resume.addEventListener(
+    "pointerdown",
+    event => {
+
+      event.preventDefault();
+
+      paused = false;
+
+      pauseScreen.classList.remove(
+        "visible"
+      );
+
+    }
+  );
+
+
+  /* =====================================================
+     WEAPONS
+     ===================================================== */
+
+  document
+    .getElementById("weapon-up")
+    .addEventListener(
+      "pointerdown",
+      event => {
+
+        event.preventDefault();
+
+      }
+    );
+
+
+  document
+    .getElementById("weapon-down")
+    .addEventListener(
+      "pointerdown",
+      event => {
+
+        event.preventDefault();
+
+      }
+    );
+
+
+  /* =====================================================
+     RAYCASTING
+     ===================================================== */
+
+  const FOV =
+    Math.PI / 3;
+
+
+  function castRay(
+    angle
+  ) {
+
+    const step =
+      0.025;
+
+    let distance = 0;
+
+    while (
+      distance < 20
+    ) {
+
+      distance += step;
+
+      const x =
+        player.x +
+        Math.cos(angle) *
+        distance;
+
+      const y =
+        player.y +
+        Math.sin(angle) *
+        distance;
+
+      if (isWall(x,y)) {
+
+        return distance;
+
+      }
+
+    }
+
+    return 20;
+
+  }
+
+
+  /* =====================================================
+     RENDER
+     ===================================================== */
+
+  function render() {
+
+    const width =
+      canvas.width;
+
+    const height =
+      canvas.height;
+
+
+    /* Sky */
+
+    ctx.fillStyle =
+      "#161616";
+
+    ctx.fillRect(
+      0,
+      0,
+      width,
+      height / 2
+    );
+
+
+    /* Floor */
+
+    ctx.fillStyle =
+      "#3b3028";
+
+    ctx.fillRect(
+      0,
+      height / 2,
+      width,
+      height / 2
+    );
+
+
+    /*
+      Wall columns
+    */
+
+    const rayCount =
+      width;
+
+
+    for (
+      let x = 0;
+      x < rayCount;
+      x++
+    ) {
+
+      const cameraX =
+        x / width -
+        0.5;
+
+      const rayAngle =
+        player.angle +
+        cameraX *
+        FOV;
+
+      let distance =
+        castRay(rayAngle);
+
+
+      /*
+        Remove fish-eye effect
+      */
+
+      distance *=
+        Math.cos(
+          rayAngle -
+          player.angle
+        );
+
+
+      const wallHeight =
+        Math.min(
+          height,
+          height /
+          distance
+        );
+
+
+      const top =
+        (height -
+        wallHeight) / 2;
+
+
+      const brightness =
+        Math.max(
+          25,
+          190 -
+          distance * 18
+        );
+
+
+      ctx.fillStyle =
+        "rgb(" +
+        brightness +
+        "," +
+        Math.floor(
+          brightness * 0.72
+        ) +
+        "," +
+        Math.floor(
+          brightness * 0.52
+        ) +
+        ")";
+
+
+      ctx.fillRect(
+        x,
+        top,
+        1,
+        wallHeight
+      );
+
+    }
+
+
+    /* Enemy */
+
+    if (enemy.alive) {
+
+      renderEnemy();
+
+    }
+
+
+    /* Weapon */
+
+    renderWeapon();
+
+  }
+
+
+  /* =====================================================
+     ENEMY SPRITE
+     ===================================================== */
+
+  function renderEnemy() {
+
+    const dx =
+      enemy.x -
+      player.x;
+
+    const dy =
+      enemy.y -
+      player.y;
+
+    const distance =
+      Math.sqrt(
+        dx * dx +
+        dy * dy
+      );
+
+
+    let angle =
+      Math.atan2(
+        dy,
+        dx
+      ) -
+      player.angle;
+
+
+    while (
+      angle > Math.PI
+    ) {
+
+      angle -=
+        Math.PI * 2;
+
+    }
+
+
+    while (
+      angle < -Math.PI
+    ) {
+
+      angle +=
+        Math.PI * 2;
+
+    }
+
+
+    if (
+      Math.abs(angle) >
+      FOV / 2
+    ) {
+
+      return;
+
+    }
+
+
+    const screenX =
+      canvas.width / 2 +
+      (
+        angle / FOV
+      ) *
+      canvas.width;
+
+
+    const size =
+      Math.min(
+        canvas.height * 0.8,
+        canvas.height /
+        distance
+      );
+
+
+    const top =
+      canvas.height / 2 -
+      size * 0.5;
+
+
+    ctx.fillStyle =
+      "#8b1515";
+
+    ctx.fillRect(
+      screenX -
+      size * 0.25,
+      top +
+      size * 0.15,
+      size * 0.5,
+      size * 0.55
+    );
+
+
+    ctx.fillStyle =
+      "#b52222";
+
+    ctx.fillRect(
+      screenX -
+      size * 0.2,
+      top,
+      size * 0.4,
+      size * 0.25
+    );
+
+
+    ctx.fillStyle =
+      "#fff";
+
+    ctx.fillRect(
+      screenX -
+      size * 0.13,
+      top +
+      size * 0.08,
+      size * 0.06,
+      size * 0.06
+    );
+
+    ctx.fillRect(
+      screenX +
+      size * 0.07,
+      top +
+      size * 0.08,
+      size * 0.06,
+      size * 0.06
+    );
+
+  }
+
+
+  /* =====================================================
+     WEAPON
+     ===================================================== */
+
+  function renderWeapon() {
+
+    const width =
+      canvas.width;
+
+    const height =
+      canvas.height;
+
+
+    const gunWidth =
+      width * 0.18;
+
+    const gunHeight =
+      height * 0.24;
+
+
+    const gunX =
+      width / 2 -
+      gunWidth / 2;
+
+
+    const gunY =
+      height -
+      gunHeight * 0.65;
+
+
+    ctx.fillStyle =
+      "#222";
+
+    ctx.fillRect(
+      gunX,
+      gunY,
+      gunWidth,
+      gunHeight
+    );
+
+
+    ctx.fillStyle =
+      "#444";
+
+    ctx.fillRect(
+      width / 2 -
+      gunWidth * 0.15,
+      gunY -
+      gunHeight * 0.25,
+      gunWidth * 0.3,
+      gunHeight * 0.3
+    );
+
+  }
+
+
+  /* =====================================================
+     GAME LOOP
+     ===================================================== */
+
+  let lastTime =
+    performance.now();
+
+
+  function gameLoop(
+    time
+  ) {
+
+    const delta =
+      Math.min(
+        0.05,
+        (
+          time -
+          lastTime
+        ) / 1000
+      );
+
+
+    lastTime =
+      time;
+
+
+    if (!paused) {
+
+      update(delta);
+
+      render();
+
+    }
+
+
+    requestAnimationFrame(
+      gameLoop
+    );
+
+  }
+
+
+  /* =====================================================
+     UPDATE
+     ===================================================== */
+
+  function update(delta) {
+
+    /*
+      Forward/backward
+    */
+
+    const forward =
+      -input.moveY;
+
+    /*
+      Strafing
+    */
+
+    const strafe =
+      input.moveX;
+
+
+    const cos =
+      Math.cos(
+        player.angle
+      );
+
+    const sin =
+      Math.sin(
+        player.angle
+      );
+
+
+    const moveX =
+      (
+        cos * forward -
+        sin * strafe
+      ) *
+      player.moveSpeed *
+      delta;
+
+
+    const moveY =
+      (
+        sin * forward +
+        cos * strafe
+      ) *
+      player.moveSpeed *
+      delta;
+
+
+    movePlayer(
+      moveX,
+      moveY
+    );
+
+
+    /*
+      Clear look input.
+    */
+
+    input.lookX = 0;
+
+    input.lookY = 0;
+
+
+    if (
+      enemy.hitTimer > 0
+    ) {
+
+      enemy.hitTimer -=
+        delta;
+
+    }
+
+  }
+
+
+  /* =====================================================
+     START
+     ===================================================== */
+
+  requestAnimationFrame(
+    gameLoop
   );
 
 </script>
