@@ -512,17 +512,11 @@
     USE
   </button>
 
-  <button
-    id="weapon-up"
-    class="weapon-button"
-  >
+  <button id="weapon-up" class="weapon-button">
     ▲
   </button>
 
-  <button
-    id="weapon-down"
-    class="weapon-button"
-  >
+  <button id="weapon-down" class="weapon-button">
     ▼
   </button>
 
@@ -533,10 +527,7 @@
       <strong id="health">100</strong>
     </div>
 
-    <div
-      class="stat"
-      id="weapon"
-    >
+    <div class="stat" id="weapon">
       PISTOL
       <strong id="ammo">50</strong>
     </div>
@@ -697,7 +688,7 @@
 
     speed: 0.65,
 
-    attackRange: 1.5,
+    attackRange: 2.5,
 
     detectionRange: 8
 
@@ -985,7 +976,12 @@
       player.y + dy;
 
 
-    if (!isWall(newX, player.y)) {
+    if (
+      !isWall(
+        newX,
+        player.y
+      )
+    ) {
 
       player.x =
         newX;
@@ -993,7 +989,12 @@
     }
 
 
-    if (!isWall(player.x, newY)) {
+    if (
+      !isWall(
+        player.x,
+        newY
+      )
+    ) {
 
       player.y =
         newY;
@@ -1118,11 +1119,32 @@
       );
 
 
-    let enemyAngle =
+    const enemyAngle =
       Math.atan2(
         dy,
         dx
       );
+
+
+    /*
+      Check whether a wall is
+      between the player and enemy.
+    */
+
+    const wallDistance =
+      castRay(
+        enemyAngle
+      );
+
+
+    if (
+      wallDistance <
+      distance
+    ) {
+
+      return;
+
+    }
 
 
     let difference =
@@ -1153,8 +1175,9 @@
 
 
     /*
-      The enemy must be roughly
-      in the centre of the crosshair.
+      Enemy must be roughly
+      in the centre of the
+      crosshair.
     */
 
     if (
@@ -1166,7 +1189,8 @@
       enemy.hitTimer =
         0.2;
 
-      enemy.alive = false;
+      enemy.alive =
+        false;
 
     }
 
@@ -1303,6 +1327,9 @@
     enemy.attackTimer =
       0;
 
+    enemy.hitTimer =
+      0;
+
     ammo =
       50;
 
@@ -1358,6 +1385,60 @@
 
 
   /* =====================================================
+     ENEMY LINE OF SIGHT
+     ===================================================== */
+
+  function castRayFromEnemy(
+    angle
+  ) {
+
+    const step =
+      0.025;
+
+    let distance =
+      0;
+
+
+    while (
+      distance < 20
+    ) {
+
+      distance +=
+        step;
+
+
+      const x =
+        enemy.x +
+        Math.cos(angle) *
+        distance;
+
+
+      const y =
+        enemy.y +
+        Math.sin(angle) *
+        distance;
+
+
+      if (
+        isWall(
+          x,
+          y
+        )
+      ) {
+
+        return distance;
+
+      }
+
+    }
+
+
+    return 20;
+
+  }
+
+
+  /* =====================================================
      ENEMY AI
      ===================================================== */
 
@@ -1383,65 +1464,99 @@
 
 
     /*
-      Enemy starts chasing
-      when you get close enough.
+      Enemy only becomes active
+      when the player is nearby.
     */
 
     if (
-      distance <
+      distance >=
       enemy.detectionRange
     ) {
 
+      return;
+
+    }
+
+
+    /*
+      Chase player.
+    */
+
+    if (
+      distance >
+      enemy.attackRange
+    ) {
+
+      const dx =
+        player.x -
+        enemy.x;
+
+      const dy =
+        player.y -
+        enemy.y;
+
+      const length =
+        Math.sqrt(
+          dx * dx +
+          dy * dy
+        );
+
+
       if (
-        distance >
-        enemy.attackRange
+        length > 0
       ) {
 
-        const dx =
-          player.x -
-          enemy.x;
+        const moveX =
+          dx /
+          length *
+          enemy.speed *
+          delta;
 
-        const dy =
-          player.y -
-          enemy.y;
-
-        const length =
-          Math.sqrt(
-            dx * dx +
-            dy * dy
-          );
+        const moveY =
+          dy /
+          length *
+          enemy.speed *
+          delta;
 
 
-        if (length > 0) {
-
-          const moveX =
-            dx /
-            length *
-            enemy.speed *
-            delta;
-
-          const moveY =
-            dy /
-            length *
-            enemy.speed *
-            delta;
-
-
-          moveEnemy(
-            moveX,
-            moveY
-          );
-
-        }
+        moveEnemy(
+          moveX,
+          moveY
+        );
 
       }
 
-      else {
+    }
 
-        /*
-          Enemy is close enough
-          to attack.
-        */
+    else {
+
+      /*
+        Enemy is close enough
+        to attack.
+
+        First check that there
+        is a clear line of sight.
+      */
+
+      const enemyAngle =
+        Math.atan2(
+          player.y -
+          enemy.y,
+          player.x -
+          enemy.x
+        );
+
+
+      const wallDistance =
+        castRayFromEnemy(
+          enemyAngle
+        );
+
+
+      if (
+        wallDistance >=
+        distance
+      ) {
 
         if (
           enemy.attackTimer <= 0
@@ -1476,10 +1591,6 @@
     const newY =
       enemy.y + dy;
 
-
-    /*
-      Simple wall collision.
-    */
 
     if (
       !isWall(
@@ -1640,7 +1751,10 @@
 
 
       if (
-        isWall(x, y)
+        isWall(
+          x,
+          y
+        )
       ) {
 
         return distance;
@@ -1730,7 +1844,7 @@
 
 
       /*
-        Fish-eye correction
+        Fish-eye correction.
       */
 
       distance *=
@@ -1788,7 +1902,7 @@
 
 
     /*
-      Enemy
+      Enemy.
     */
 
     if (
@@ -1801,7 +1915,7 @@
 
 
     /*
-      Weapon
+      Weapon.
     */
 
     renderWeapon();
@@ -1810,7 +1924,7 @@
 
 
   /* =====================================================
-     ENEMY SPRITE
+     ENEMY RENDER
      ===================================================== */
 
   function renderEnemy() {
@@ -1831,11 +1945,44 @@
       );
 
 
-    let angle =
+    /*
+      Work out the angle
+      between player and enemy.
+    */
+
+    const enemyAngle =
       Math.atan2(
         dy,
         dx
-      ) -
+      );
+
+
+    /*
+      Check whether a wall is
+      closer than the enemy.
+
+      If it is, the enemy is
+      hidden behind the wall.
+    */
+
+    const wallDistance =
+      castRay(
+        enemyAngle
+      );
+
+
+    if (
+      wallDistance <
+      distance
+    ) {
+
+      return;
+
+    }
+
+
+    let angle =
+      enemyAngle -
       player.angle;
 
 
@@ -1860,6 +2007,10 @@
 
     }
 
+
+    /*
+      Outside field of view.
+    */
 
     if (
       Math.abs(angle) >
@@ -1893,7 +2044,7 @@
 
 
     /*
-      Shadow
+      Shadow.
     */
 
     ctx.fillStyle =
@@ -1910,7 +2061,7 @@
 
 
     /*
-      Body
+      Body.
     */
 
     ctx.fillStyle =
@@ -1927,7 +2078,7 @@
 
 
     /*
-      Head
+      Head.
     */
 
     ctx.fillStyle =
@@ -1943,7 +2094,7 @@
 
 
     /*
-      Eyes
+      Eyes.
     */
 
     ctx.fillStyle =
@@ -1958,6 +2109,7 @@
       size * 0.06
     );
 
+
     ctx.fillRect(
       screenX +
       size * 0.07,
@@ -1969,7 +2121,7 @@
 
 
     /*
-      Hit flash
+      Hit flash.
     */
 
     if (
@@ -2061,7 +2213,7 @@
 
 
     /*
-      Forward and backward
+      Forward/backward.
     */
 
     const forward =
@@ -2069,7 +2221,7 @@
 
 
     /*
-      Strafing
+      Strafing.
     */
 
     const strafe =
@@ -2080,6 +2232,7 @@
       Math.cos(
         player.angle
       );
+
 
     const sin =
       Math.sin(
@@ -2110,6 +2263,10 @@
       moveY
     );
 
+
+    /*
+      Enemy AI.
+    */
 
     updateEnemy(
       delta
