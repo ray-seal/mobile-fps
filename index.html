@@ -95,8 +95,8 @@
       position: absolute;
       top: 70px;
       right: 0;
-      width: 50vw;
-      height: 60vh;
+      width: 55vw;
+      height: 70vh;
       z-index: 5;
       touch-action: none;
     }
@@ -236,6 +236,8 @@
       border: 2px solid rgba(255,255,255,0.5);
 
       transform: translate(0,0);
+
+      transition: transform 0.025s linear;
     }
 
     /* =========================
@@ -545,9 +547,7 @@
 
       <h1>PAUSED</h1>
 
-      <p>
-        Mission suspended.
-      </p>
+      <p>Mission suspended.</p>
 
       <button id="resume">
         RESUME
@@ -655,9 +655,9 @@
 
     angle: 0,
 
-    moveSpeed: 2.4,
+    moveSpeed: 2.8,
 
-    turnSpeed: 0.0007,
+    turnSpeed: 0.0008,
 
     health: 100
 
@@ -725,7 +725,6 @@
     use: false
 
   };
-
 
   window.gameInput = input;
 
@@ -861,7 +860,7 @@
 
 
   /* =====================================================
-     LOOK
+     TOUCH LOOK
      ===================================================== */
 
   const lookZone =
@@ -870,6 +869,14 @@
   let lookActive = false;
 
   let lastLookX = 0;
+
+  let lookVelocity = 0;
+
+  const LOOK_SENSITIVITY = 0.0008;
+
+  const LOOK_SMOOTHING = 0.28;
+
+  const LOOK_DEADZONE = 0.5;
 
 
   lookZone.addEventListener(
@@ -886,6 +893,8 @@
 
       lastLookX =
         event.clientX;
+
+      lookVelocity = 0;
 
     }
   );
@@ -904,13 +913,43 @@
         event.clientX -
         lastLookX;
 
-      player.angle +=
-        deltaX *
-        player.turnSpeed *
-        100;
-
       lastLookX =
         event.clientX;
+
+
+      /*
+        Ignore tiny accidental
+        thumb movements.
+      */
+
+      if (
+        Math.abs(deltaX) <
+        LOOK_DEADZONE
+      ) {
+
+        return;
+
+      }
+
+
+      const targetVelocity =
+        deltaX *
+        LOOK_SENSITIVITY *
+        100;
+
+
+      /*
+        Smooth the camera rather
+        than instantly applying
+        every touch movement.
+      */
+
+      lookVelocity +=
+        (
+          targetVelocity -
+          lookVelocity
+        ) *
+        LOOK_SMOOTHING;
 
     }
   );
@@ -922,6 +961,8 @@
 
       lookActive = false;
 
+      lookVelocity = 0;
+
     }
   );
 
@@ -932,6 +973,8 @@
 
       lookActive = false;
 
+      lookVelocity = 0;
+
     }
   );
 
@@ -940,13 +983,17 @@
      COLLISION
      ===================================================== */
 
-  function isWall(x, y) {
+  function isWall(
+    x,
+    y
+  ) {
 
     const mapX =
       Math.floor(x);
 
     const mapY =
       Math.floor(y);
+
 
     if (
       mapY < 0 ||
@@ -958,6 +1005,7 @@
       return true;
 
     }
+
 
     return map[mapY][mapX] === 1;
 
@@ -1091,7 +1139,9 @@
     if (ammo <= 0)
       return;
 
+
     ammo--;
+
 
     document.getElementById(
       "ammo"
@@ -1127,8 +1177,8 @@
 
 
     /*
-      Check whether a wall is
-      between the player and enemy.
+      Check wall between
+      player and enemy.
     */
 
     const wallDistance =
@@ -1174,12 +1224,6 @@
     }
 
 
-    /*
-      Enemy must be roughly
-      in the centre of the
-      crosshair.
-    */
-
     if (
       Math.abs(difference) <
       0.12 &&
@@ -1212,6 +1256,7 @@
       event.preventDefault();
 
       input.use = true;
+
 
       setTimeout(
         () => {
@@ -1315,6 +1360,7 @@
     player.health =
       100;
 
+
     enemy.x =
       enemy.startX;
 
@@ -1330,24 +1376,29 @@
     enemy.hitTimer =
       0;
 
+
     ammo =
       50;
+
 
     document.getElementById(
       "health"
     ).textContent =
       player.health;
 
+
     document.getElementById(
       "ammo"
     ).textContent =
       ammo;
+
 
     gameOver =
       false;
 
     paused =
       false;
+
 
     deathScreen.classList.remove(
       "visible"
@@ -1463,11 +1514,6 @@
       );
 
 
-    /*
-      Enemy only becomes active
-      when the player is nearby.
-    */
-
     if (
       distance >=
       enemy.detectionRange
@@ -1495,6 +1541,7 @@
         player.y -
         enemy.y;
 
+
       const length =
         Math.sqrt(
           dx * dx +
@@ -1511,6 +1558,7 @@
           length *
           enemy.speed *
           delta;
+
 
         const moveY =
           dy /
@@ -1531,11 +1579,8 @@
     else {
 
       /*
-        Enemy is close enough
-        to attack.
-
-        First check that there
-        is a clear line of sight.
+        Attack only with
+        clear line of sight.
       */
 
       const enemyAngle =
@@ -1621,7 +1666,7 @@
 
 
   /* =====================================================
-     PLAYER DAMAGE
+     DAMAGE
      ===================================================== */
 
   function damagePlayer() {
@@ -1635,8 +1680,7 @@
 
 
     if (
-      player.health <
-      0
+      player.health < 0
     ) {
 
       player.health =
@@ -1695,6 +1739,7 @@
     gameOver =
       true;
 
+
     input.moveX =
       0;
 
@@ -1703,6 +1748,7 @@
 
     input.firing =
       false;
+
 
     deathScreen.classList.add(
       "visible"
@@ -1783,7 +1829,7 @@
 
 
     /*
-      Sky
+      Sky.
     */
 
     ctx.fillStyle =
@@ -1798,7 +1844,7 @@
 
 
     /*
-      Floor
+      Floor.
     */
 
     ctx.fillStyle =
@@ -1813,7 +1859,7 @@
 
 
     /*
-      Walls
+      Walls.
     */
 
     const rayCount =
@@ -1842,10 +1888,6 @@
           rayAngle
         );
 
-
-      /*
-        Fish-eye correction.
-      */
 
       distance *=
         Math.cos(
@@ -1945,11 +1987,6 @@
       );
 
 
-    /*
-      Work out the angle
-      between player and enemy.
-    */
-
     const enemyAngle =
       Math.atan2(
         dy,
@@ -1958,11 +1995,8 @@
 
 
     /*
-      Check whether a wall is
-      closer than the enemy.
-
-      If it is, the enemy is
-      hidden behind the wall.
+      Hide enemy when a wall
+      is between player and enemy.
     */
 
     const wallDistance =
@@ -2007,10 +2041,6 @@
 
     }
 
-
-    /*
-      Outside field of view.
-    */
 
     if (
       Math.abs(angle) >
@@ -2213,26 +2243,67 @@
 
 
     /*
-      Forward/backward.
+      Apply smoothed camera movement.
     */
 
-    const forward =
+    if (
+      Math.abs(lookVelocity) >
+      0.00001
+    ) {
+
+      player.angle +=
+        lookVelocity *
+        60;
+
+    }
+
+
+    /*
+      Forward / backward.
+    */
+
+    let forward =
       -input.moveY;
 
 
     /*
-      Strafing.
+      Strafe.
     */
 
-    const strafe =
+    let strafe =
       input.moveX;
+
+
+    /*
+      Normalise diagonal movement
+      so forward + strafe isn't
+      faster than straight movement.
+    */
+
+    const movementLength =
+      Math.sqrt(
+        forward * forward +
+        strafe * strafe
+      );
+
+
+    if (
+      movementLength > 1
+    ) {
+
+      forward /=
+        movementLength;
+
+      strafe /=
+        movementLength;
+
+    }
 
 
     const cos =
       Math.cos(
         player.angle
       );
-
 
     const sin =
       Math.sin(
