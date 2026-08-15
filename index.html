@@ -1501,63 +1501,95 @@ function renderPickups(){
     }
 }
 
-function renderDoorObject(obj,open,fill,outline){
+function renderDoorObject(obj,open,fill,outline,label){
     if(open)return;
 
-    const p=visibleProjection(obj);
+    /*
+       Doors are special objects, not walls. Do NOT use the wall
+       depth buffer here because the door occupies a floor cell and
+       the wall behind it can otherwise hide the entire door.
+       We still require a genuine line of sight, so it cannot appear
+       through a wall.
+    */
+    const p=projectObject(obj);
     if(!p)return;
 
-    const size=H/p.corrected;
+    if(!hasLineOfSight(
+        player.x,player.y,
+        obj.x,obj.y
+    ))return;
+
+    const size=Math.min(
+        H/p.corrected,
+        H*1.35
+    );
+
     const cx=p.screenX;
     const top=H/2-size*.5;
-    const left=cx-size*.42;
-    const width=size*.84;
+    const left=cx-size*.44;
+    const width=size*.88;
 
     /* Heavy outer frame */
-    ctx.fillStyle="#101010";
-    ctx.fillRect(left-size*.045,top-size*.045,width+size*.09,size+size*.09);
+    ctx.fillStyle="#090909";
+    ctx.fillRect(
+        left-size*.065,
+        top-size*.065,
+        width+size*.13,
+        size+size*.13
+    );
 
     /* Door slab */
     ctx.fillStyle=fill;
     ctx.fillRect(left,top,width,size);
 
-    /* Raised inner panel */
-    ctx.fillStyle="rgba(0,0,0,.28)";
+    /* Inner recessed panel */
+    ctx.fillStyle="rgba(0,0,0,.42)";
     ctx.fillRect(
-        cx-size*.31,
-        top+size*.12,
-        size*.62,
-        size*.76
+        cx-size*.32,
+        top+size*.13,
+        size*.64,
+        size*.70
     );
 
     ctx.strokeStyle=outline;
-    ctx.lineWidth=Math.max(2,size*.018);
+    ctx.lineWidth=Math.max(3,size*.025);
     ctx.strokeRect(
         left,top,width,size
     );
 
-    ctx.strokeStyle="rgba(255,255,255,.28)";
-    ctx.lineWidth=Math.max(1,size*.008);
+    ctx.strokeStyle="rgba(255,255,255,.35)";
+    ctx.lineWidth=Math.max(1,size*.009);
     ctx.strokeRect(
-        cx-size*.31,
-        top+size*.12,
-        size*.62,
-        size*.76
+        cx-size*.32,
+        top+size*.13,
+        size*.64,
+        size*.70
     );
 
-    /* Vertical warning strips */
+    /* High-contrast warning bars */
     ctx.fillStyle=outline;
     ctx.fillRect(
-        cx-size*.35,
-        top+size*.10,
-        size*.035,
-        size*.80
+        cx-size*.37,
+        top+size*.08,
+        size*.055,
+        size*.84
     );
     ctx.fillRect(
         cx+size*.315,
-        top+size*.10,
-        size*.035,
-        size*.80
+        top+size*.08,
+        size*.055,
+        size*.84
+    );
+
+    /* Door label */
+    ctx.fillStyle="#fff";
+    ctx.font=`bold ${Math.max(10,size*.075)}px Arial`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(
+        label,
+        cx,
+        top+size*.31
     );
 
     /* Status light */
@@ -1566,7 +1598,7 @@ function renderDoorObject(obj,open,fill,outline){
     ctx.arc(
         cx,
         top+size*.18,
-        Math.max(2,size*.035),
+        Math.max(3,size*.038),
         0,
         Math.PI*2
     );
@@ -1576,21 +1608,23 @@ function renderDoorObject(obj,open,fill,outline){
     ctx.fillStyle="#f5f5f5";
     ctx.fillRect(
         cx+size*.18,
-        H/2-size*.035,
-        size*.045,
-        size*.12
+        H/2-size*.04,
+        size*.055,
+        size*.14
     );
 }
 
 function renderDoors(){
     renderDoorObject(
         door,door.open,
-        "#a84a16","#ffb43b"
+        "#9b3516","#ffb43b",
+        "EXIT"
     );
 
     renderDoorObject(
         blueDoor,blueDoor.open,
-        "#064a9e","#38a1ff"
+        "#064a9e","#38a1ff",
+        "BLUE"
     );
 }
 
@@ -1756,6 +1790,27 @@ function updateHUD(){
     document.getElementById("weaponName").textContent=
         player.weapon==="pistol"?"PISTOL":"SHOTGUN";
 
+    const enemiesTotal=enemies.length;
+    const enemiesRemaining=
+        enemies.filter(enemy=>enemy.active).length;
+
+    let text=
+        player.hasKey
+        ? "REACH THE EXIT"
+        : "FIND THE KEY AND REACH THE EXIT";
+
+    if(player.hasBlueKey){
+        text+=" â¢ BLUE KEY";
+    }
+
+    if(blueberryFound){
+        text+=" â¢ BLUEBERRY FOUND";
+    }
+
+    text+=` â¢ ENEMIES ${enemiesRemaining}/${enemiesTotal}`;
+
+    document.getElementById("objective").textContent=text;
+
     let ammoText;
 
     if(player.weapon==="pistol"){
@@ -1768,15 +1823,6 @@ function updateHUD(){
 
     document.getElementById("ammo").textContent=ammoText;
 
-    let text=
-        player.hasKey?
-        "REACH THE EXIT":
-        "FIND THE KEY AND REACH THE EXIT";
-
-    if(player.hasBlueKey)text+=" â¢ BLUE KEY";
-    if(blueberryFound)text+=" â¢ BLUEBERRY FOUND";
-
-    document.getElementById("objective").textContent=text;
 }
 
 function showMessage(text){
