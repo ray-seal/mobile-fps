@@ -1124,6 +1124,17 @@ function generateMission(){
 
     blueberry.x=blueberryCell.x+.5;
     blueberry.y=blueberryCell.y+.5;
+
+    /* Safety check: blueberry must also be on walkable floor. */
+    if(circleHitsWall(
+        blueberry.x,
+        blueberry.y,
+        ENEMY_RADIUS+.04
+    )){
+        blueberry.x=blueParent.x+.5;
+        blueberry.y=blueParent.y+.5;
+    }
+
     blueberry.active=true;
     blueberry.health=blueberry.maxHealth;
     blueberry.path=[];
@@ -1171,7 +1182,17 @@ function generateMission(){
 
             const d=Math.hypot(c.x-1.5,c.y-1.5);
 
-            return !forbidden&&d>5;
+            if(forbidden||d<=5)return false;
+
+            /* Never spawn inside a wall or pressed against one. */
+            const sx=c.x+.5;
+            const sy=c.y+.5;
+
+            if(circleHitsWall(sx,sy,ENEMY_RADIUS+.04)){
+                return false;
+            }
+
+            return true;
         })
         .sort(()=>Math.random()-.5);
 
@@ -1180,7 +1201,11 @@ function generateMission(){
     for(const e of enemies){
         if(e.type==="blueberry")continue;
 
-        const c=spawnPool[si++]||{x:7+si,y:7};
+        /* The procedural maze is large enough for these normally. */
+        if(!spawnPool.length)continue;
+
+        const c=spawnPool[si%spawnPool.length];
+        si++;
 
         e.x=c.x+.5;
         e.y=c.y+.5;
@@ -1479,48 +1504,93 @@ function renderPickups(){
 function renderDoorObject(obj,open,fill,outline){
     if(open)return;
 
-    const p=projectObject(obj);
+    const p=visibleProjection(obj);
     if(!p)return;
 
-    const idx=Math.max(
-        0,
-        Math.min(
-            depthBuffer.length-1,
-            Math.floor(p.screenX/W*depthBuffer.length)
-        )
-    );
-
-    if(depthBuffer[idx]&&depthBuffer[idx]<p.corrected-.1)return;
-
     const size=H/p.corrected;
+    const cx=p.screenX;
+    const top=H/2-size*.5;
+    const left=cx-size*.42;
+    const width=size*.84;
 
+    /* Heavy outer frame */
+    ctx.fillStyle="#101010";
+    ctx.fillRect(left-size*.045,top-size*.045,width+size*.09,size+size*.09);
+
+    /* Door slab */
     ctx.fillStyle=fill;
+    ctx.fillRect(left,top,width,size);
+
+    /* Raised inner panel */
+    ctx.fillStyle="rgba(0,0,0,.28)";
     ctx.fillRect(
-        p.screenX-size*.4,
-        H/2-size*.5,
-        size*.8,
-        size
+        cx-size*.31,
+        top+size*.12,
+        size*.62,
+        size*.76
     );
 
     ctx.strokeStyle=outline;
-    ctx.lineWidth=4;
+    ctx.lineWidth=Math.max(2,size*.018);
     ctx.strokeRect(
-        p.screenX-size*.4,
-        H/2-size*.5,
-        size*.8,
-        size
+        left,top,width,size
+    );
+
+    ctx.strokeStyle="rgba(255,255,255,.28)";
+    ctx.lineWidth=Math.max(1,size*.008);
+    ctx.strokeRect(
+        cx-size*.31,
+        top+size*.12,
+        size*.62,
+        size*.76
+    );
+
+    /* Vertical warning strips */
+    ctx.fillStyle=outline;
+    ctx.fillRect(
+        cx-size*.35,
+        top+size*.10,
+        size*.035,
+        size*.80
+    );
+    ctx.fillRect(
+        cx+size*.315,
+        top+size*.10,
+        size*.035,
+        size*.80
+    );
+
+    /* Status light */
+    ctx.fillStyle=outline;
+    ctx.beginPath();
+    ctx.arc(
+        cx,
+        top+size*.18,
+        Math.max(2,size*.035),
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
+    /* Handle / lock */
+    ctx.fillStyle="#f5f5f5";
+    ctx.fillRect(
+        cx+size*.18,
+        H/2-size*.035,
+        size*.045,
+        size*.12
     );
 }
 
 function renderDoors(){
     renderDoorObject(
         door,door.open,
-        "#b86a1c","#ffb43b"
+        "#a84a16","#ffb43b"
     );
 
     renderDoorObject(
         blueDoor,blueDoor.open,
-        "#0757c7","#38a1ff"
+        "#064a9e","#38a1ff"
     );
 }
 
