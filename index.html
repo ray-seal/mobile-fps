@@ -2654,6 +2654,1097 @@ document.getElementById("map")
 document.getElementById("legend")
     .classList.add("visible");
 
+const blueKey = {
+    x: 0,
+    y: 0,
+    active: true
+};
+
+const blueDoor = {
+    x: 0,
+    y: 0,
+    open: false
+};
+
+let blueberryFound = false;
+
+/* -----------------------------
+   Procedural maze
+   ----------------------------- */
+
+function buildProceduralMaze() {
+
+    const grid = [];
+
+    for (let y = 0; y < MAP_H; y++) {
+        grid[y] = [];
+
+        for (let x = 0; x < MAP_W; x++) {
+            grid[y][x] = "1";
+        }
+    }
+
+    const start = { x: 1, y: 1 };
+
+    grid[start.y][start.x] = "0";
+
+    const stack = [start];
+    const visited = new Set(["1,1"]);
+
+    const directions = [
+        { x: 2, y: 0 },
+        { x: -2, y: 0 },
+        { x: 0, y: 2 },
+        { x: 0, y: -2 }
+    ];
+
+    while (stack.length) {
+
+        const current =
+            stack[stack.length - 1];
+
+        const choices = [];
+
+        for (const d of directions) {
+
+            const nx =
+                current.x + d.x;
+
+            const ny =
+                current.y + d.y;
+
+            if (
+                nx >= 1 &&
+                nx <= MAP_W - 3 &&
+                ny >= 1 &&
+                ny <= MAP_H - 3 &&
+                !visited.has(`${nx},${ny}`)
+            ) {
+
+                choices.push({
+                    nx,
+                    ny,
+                    wx: current.x + d.x / 2,
+                    wy: current.y + d.y / 2
+                });
+            }
+        }
+
+        if (!choices.length) {
+
+            stack.pop();
+            continue;
+        }
+
+        const choice =
+            choices[
+                Math.floor(
+                    Math.random() *
+                    choices.length
+                )
+            ];
+
+        grid[choice.wy][choice.wx] = "0";
+        grid[choice.ny][choice.nx] = "0";
+
+        visited.add(
+            `${choice.nx},${choice.ny}`
+        );
+
+        stack.push({
+            x: choice.nx,
+            y: choice.ny
+        });
+    }
+
+    for (let y = 0; y < MAP_H; y++) {
+        MAP[y] = grid[y].join("");
+    }
+}
+
+/* -----------------------------
+   Find useful maze cells
+   ----------------------------- */
+
+function mazeDistances() {
+
+    const distances = {};
+    const parents = {};
+
+    const queue = [
+        { x: 1, y: 1 }
+    ];
+
+    distances["1,1"] = 0;
+
+    while (queue.length) {
+
+        const current =
+            queue.shift();
+
+        const dirs = [
+            { x: 1, y: 0 },
+            { x: -1, y: 0 },
+            { x: 0, y: 1 },
+            { x: 0, y: -1 }
+        ];
+
+        for (const d of dirs) {
+
+            const nx =
+                current.x + d.x;
+
+            const ny =
+                current.y + d.y;
+
+            if (
+                nx < 0 ||
+                ny < 0 ||
+                nx >= MAP_W ||
+                ny >= MAP_H
+            ) {
+                continue;
+            }
+
+            if (MAP[ny][nx] !== "0") {
+                continue;
+            }
+
+            const id =
+                `${nx},${ny}`;
+
+            if (distances[id] !== undefined) {
+                continue;
+            }
+
+            distances[id] =
+                distances[
+                    `${current.x},${current.y}`
+                ] + 1;
+
+            parents[id] = {
+                x: current.x,
+                y: current.y
+            };
+
+            queue.push({
+                x: nx,
+                y: ny
+            });
+        }
+    }
+
+    return {
+        distances,
+        parents
+    };
+}
+
+function cellDegree(x, y) {
+
+    let degree = 0;
+
+    const dirs = [
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 }
+    ];
+
+    for (const d of dirs) {
+
+        const nx = x + d.x;
+        const ny = y + d.y;
+
+        if (
+            nx >= 0 &&
+            ny >= 0 &&
+            nx < MAP_W &&
+            ny < MAP_H &&
+            MAP[ny][nx] === "0"
+        ) {
+            degree++;
+        }
+    }
+
+    return degree;
+}
+
+function getFloorCells() {
+
+    const cells = [];
+
+    for (let y = 1; y < MAP_H - 1; y++) {
+
+        for (let x = 1; x < MAP_W - 1; x++) {
+
+            if (MAP[y][x] === "0") {
+
+                cells.push({
+                    x,
+                    y
+                });
+            }
+        }
+    }
+
+    return cells;
+}
+
+/* -----------------------------
+   Generate the actual mission
+   ----------------------------- */
+
+function generateMission() {
+
+    buildProceduralMaze();
+
+    const {
+        distances,
+        parents
+    } = mazeDistances();
+
+    const leaves =
+        getFloorCells()
+        .filter(cell =>
+            cellDegree(
+                cell.x,
+                cell.y
+            ) === 1 &&
+            distances[
+                `${cell.x},${cell.y}`
+            ] > 12
+        )
+        .sort(
+            (a,b) =>
+                distances[
+                    `${b.x},${b.y}`
+                ] -
+                distances[
+                    `${a.x},${a.y}`
+                ]
+        );
+
+    /*
+       The furthest leaf becomes the normal exit.
+    */
+
+    const exitCell =
+        leaves[0] || {
+            x: 21,
+            y: 21
+        };
+
+    /*
+       A different distant leaf becomes
+       the secret Blueberry branch.
+    */
+
+    let blueberryCell =
+        leaves.find(cell => {
+
+            const distance =
+                Math.hypot(
+                    cell.x - exitCell.x,
+                    cell.y - exitCell.y
+                );
+
+            return distance > 6;
+
+        });
+
+    if (!blueberryCell) {
+        blueberryCell = leaves[1] || {
+            x: 19,
+            y: 19
+        };
+    }
+
+    /*
+       The cell immediately before the
+       blueberry leaf becomes the blue door.
+    */
+
+    const blueberryParent =
+        parents[
+            `${blueberryCell.x},${blueberryCell.y}`
+        ] || {
+            x: blueberryCell.x,
+            y: blueberryCell.y - 1
+        };
+
+    /*
+       Normal exit door.
+    */
+
+    door.x =
+        exitCell.x + .5;
+
+    door.y =
+        exitCell.y + .5;
+
+    door.open = false;
+
+    /*
+       Blue locked door.
+    */
+
+    blueDoor.x =
+        blueberryParent.x + .5;
+
+    blueDoor.y =
+        blueberryParent.y + .5;
+
+    blueDoor.open = false;
+
+    /*
+       Blueberry sits behind the blue door.
+    */
+
+    const blueberry =
+        enemies.find(
+            enemy =>
+                enemy.type === "blueberry"
+        );
+
+    if (blueberry) {
+
+        blueberry.x =
+            blueberryCell.x + .5;
+
+        blueberry.y =
+            blueberryCell.y + .5;
+
+        blueberry.active = true;
+        blueberry.health = blueberry.maxHealth;
+        blueberry.path = [];
+        blueberry.pathTimer = 0;
+        blueberry.lastAttack = 0;
+    }
+
+    /*
+       Find a normal floor cell for the blue key.
+       It must not be the spawn, exit or blueberry branch.
+    */
+
+    const candidates =
+        getFloorCells()
+        .filter(cell => {
+
+            const distance =
+                distances[
+                    `${cell.x},${cell.y}`
+                ];
+
+            if (distance === undefined) {
+                return false;
+            }
+
+            if (
+                cell.x === exitCell.x &&
+                cell.y === exitCell.y
+            ) {
+                return false;
+            }
+
+            if (
+                cell.x === blueberryCell.x &&
+                cell.y === blueberryCell.y
+            ) {
+                return false;
+            }
+
+            if (
+                cell.x === blueberryParent.x &&
+                cell.y === blueberryParent.y
+            ) {
+                return false;
+            }
+
+            return distance > 8;
+        });
+
+    const chosenKey =
+        candidates.length
+        ? candidates[
+            Math.floor(
+                Math.random() *
+                candidates.length
+            )
+        ]
+        : {
+            x: 3,
+            y: 3
+        };
+
+    blueKey.x =
+        chosenKey.x + .5;
+
+    blueKey.y =
+        chosenKey.y + .5;
+
+    blueKey.active = true;
+
+    /*
+       Put the ordinary key somewhere else,
+       preferably away from the start.
+    */
+
+    const ordinaryCandidates =
+        candidates.filter(cell => {
+
+            return Math.hypot(
+                cell.x - chosenKey.x,
+                cell.y - chosenKey.y
+            ) > 5;
+        });
+
+    const ordinaryKey =
+        ordinaryCandidates.length
+        ? ordinaryCandidates[
+            Math.floor(
+                Math.random() *
+                ordinaryCandidates.length
+            )
+        ]
+        : {
+            x: 5,
+            y: 5
+        };
+
+    key.x =
+        ordinaryKey.x + .5;
+
+    key.y =
+        ordinaryKey.y + .5;
+
+    key.active = true;
+
+    /*
+       Respawn ordinary enemies on guaranteed
+       walkable floor cells.
+    */
+
+    const spawnPool =
+        getFloorCells()
+        .filter(cell => {
+
+            const px =
+                cell.x + .5;
+
+            const py =
+                cell.y + .5;
+
+            const farEnough =
+                Math.hypot(
+                    px - player.x,
+                    py - player.y
+                ) > 5;
+
+            const notExit =
+                Math.floor(door.x) !== cell.x ||
+                Math.floor(door.y) !== cell.y;
+
+            const notBlueDoor =
+                Math.floor(blueDoor.x) !== cell.x ||
+                Math.floor(blueDoor.y) !== cell.y;
+
+            const notBlueberry =
+                Math.floor(
+                    blueberry?.x || -99
+                ) !== cell.x ||
+                Math.floor(
+                    blueberry?.y || -99
+                ) !== cell.y;
+
+            return (
+                farEnough &&
+                notExit &&
+                notBlueDoor &&
+                notBlueberry
+            );
+        });
+
+    let spawnIndex = 0;
+
+    for (const enemy of enemies) {
+
+        if (enemy.type === "blueberry") {
+            continue;
+        }
+
+        if (!spawnPool.length) continue;
+
+        /*
+           Pick different cells for each enemy.
+        */
+
+        const cell =
+            spawnPool[
+                spawnIndex %
+                spawnPool.length
+            ];
+
+        spawnIndex++;
+
+        enemy.x =
+            cell.x + .5;
+
+        enemy.y =
+            cell.y + .5;
+
+        enemy.active = true;
+        enemy.health = enemy.maxHealth;
+        enemy.path = [];
+        enemy.pathTimer = 0;
+        enemy.lastAttack = 0;
+    }
+
+    /*
+       Rebuild pickups on valid floor.
+    */
+
+    pickups.length = 0;
+
+    const pickupPool =
+        getFloorCells()
+        .filter(cell => {
+
+            const x = cell.x;
+            const y = cell.y;
+
+            return !(
+                x === Math.floor(door.x) &&
+                y === Math.floor(door.y)
+            ) && !(
+                x === Math.floor(blueDoor.x) &&
+                y === Math.floor(blueDoor.y)
+            );
+        });
+
+    const shuffled =
+        [...pickupPool]
+        .sort(() => Math.random() - .5);
+
+    const pickupTypes = [
+        "health",
+        "health",
+        "pistolAmmo",
+        "shotgunAmmo"
+    ];
+
+    for (
+        let i = 0;
+        i < pickupTypes.length;
+        i++
+    ) {
+
+        const cell =
+            shuffled[i];
+
+        if (!cell) continue;
+
+        pickups.push({
+            type: pickupTypes[i],
+            x: cell.x + .5,
+            y: cell.y + .5,
+            active: true
+        });
+    }
+
+    /*
+       Reset exploration.
+    */
+
+    for (let y = 0; y < MAP_H; y++) {
+
+        for (let x = 0; x < MAP_W; x++) {
+
+            explored[y][x] = false;
+        }
+    }
+
+    player.x = 1.5;
+    player.y = 1.5;
+    player.angle = 0;
+
+    player.hasKey = false;
+
+    blueberryFound = false;
+
+    const marker =
+        document.getElementById(
+            "blueberryMarker"
+        );
+
+    if (marker) {
+        marker.style.display = "none";
+    }
+}
+
+/* =========================================================
+   BLUE DOOR COLLISION
+   ========================================================= */
+
+const originalIsSolidAt =
+    isSolidAt;
+
+isSolidAt = function(x, y) {
+
+    if (
+        !blueDoor.open &&
+        Math.floor(blueDoor.x) === Math.floor(x) &&
+        Math.floor(blueDoor.y) === Math.floor(y)
+    ) {
+        return true;
+    }
+
+    return originalIsSolidAt(x, y);
+};
+
+const originalCellWalkable =
+    cellWalkable;
+
+cellWalkable = function(x, y) {
+
+    if (
+        !blueDoor.open &&
+        Math.floor(blueDoor.x) === x &&
+        Math.floor(blueDoor.y) === y
+    ) {
+        return false;
+    }
+
+    return originalCellWalkable(x, y);
+};
+
+/* =========================================================
+   BLUE KEY + BLUEBERRY DISCOVERY
+   ========================================================= */
+
+const originalCollectPickups =
+    collectPickups;
+
+collectPickups = function() {
+
+    originalCollectPickups();
+
+    if (blueKey.active) {
+
+        const distance =
+            Math.hypot(
+                blueKey.x - player.x,
+                blueKey.y - player.y
+            );
+
+        if (distance < .55) {
+
+            blueKey.active = false;
+
+            player.hasBlueKey = true;
+
+            showMessage(
+                "BLUE KEY ACQUIRED"
+            );
+        }
+    }
+
+    const blueberry =
+        enemies.find(
+            enemy =>
+                enemy.type === "blueberry"
+        );
+
+    if (
+        blueberry &&
+        !blueberryFound &&
+        blueDoor.open &&
+        Math.hypot(
+            blueberry.x - player.x,
+            blueberry.y - player.y
+        ) < 2.0
+    ) {
+
+        blueberryFound = true;
+
+        const marker =
+            document.getElementById(
+                "blueberryMarker"
+            );
+
+        if (marker) {
+            marker.style.display = "block";
+        }
+
+        showMessage(
+            "BLUEBERRY FOUND!"
+        );
+    }
+};
+
+/* =========================================================
+   BLUE DOOR USE
+   ========================================================= */
+
+const originalUseDoor =
+    useDoor;
+
+useDoor = function() {
+
+    const blueDistance =
+        Math.hypot(
+            blueDoor.x - player.x,
+            blueDoor.y - player.y
+        );
+
+    if (blueDistance <= 1.35) {
+
+        if (!player.hasBlueKey) {
+
+            showMessage(
+                "BLUE DOOR LOCKED"
+            );
+
+            return;
+        }
+
+        if (!blueDoor.open) {
+
+            blueDoor.open = true;
+
+            showMessage(
+                "BLUE DOOR OPEN"
+            );
+
+            return;
+        }
+    }
+
+    originalUseDoor();
+};
+
+/* =========================================================
+   BLUE DOOR RENDERING
+   ========================================================= */
+
+function drawSpecialDoor(
+    obj,
+    open,
+    fill,
+    outline
+) {
+
+    if (open) return;
+
+    const p =
+        projectObject(obj);
+
+    if (!p) return;
+
+    const size =
+        H / p.corrected;
+
+    const rayIndex =
+        Math.floor(
+            p.screenX / W *
+            depthBuffer.length
+        );
+
+    const wallDepth =
+        depthBuffer[
+            Math.max(
+                0,
+                Math.min(
+                    depthBuffer.length - 1,
+                    rayIndex
+                )
+            )
+        ];
+
+    if (
+        wallDepth &&
+        wallDepth < p.corrected - .1
+    ) {
+        return;
+    }
+
+    ctx.fillStyle = fill;
+
+    ctx.fillRect(
+        p.screenX - size * .4,
+        H / 2 - size * .5,
+        size * .8,
+        size
+    );
+
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 4;
+
+    ctx.strokeRect(
+        p.screenX - size * .4,
+        H / 2 - size * .5,
+        size * .8,
+        size
+    );
+}
+
+const originalRenderDoor =
+    renderDoor;
+
+renderDoor = function() {
+
+    originalRenderDoor();
+
+    drawSpecialDoor(
+        blueDoor,
+        blueDoor.open,
+        "#0757c7",
+        "#38a1ff"
+    );
+};
+
+/* =========================================================
+   BLUE KEY RENDERING
+   ========================================================= */
+
+const originalRenderPickups =
+    renderPickups;
+
+renderPickups = function() {
+
+    originalRenderPickups();
+
+    if (!blueKey.active) return;
+
+    const p =
+        projectObject(blueKey);
+
+    if (!p) return;
+
+    if (
+        !hasLineOfSight(
+            player.x,
+            player.y,
+            blueKey.x,
+            blueKey.y
+        )
+    ) {
+        return;
+    }
+
+    const size =
+        H / p.corrected * .25;
+
+    ctx.fillStyle = "#168cff";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        p.screenX,
+        H / 2,
+        size,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.strokeStyle = "#8dccff";
+    ctx.lineWidth = 3;
+
+    ctx.stroke();
+};
+
+/* =========================================================
+   MAP EXTENSION
+   ========================================================= */
+
+const originalDrawMap =
+    drawMap;
+
+drawMap = function() {
+
+    originalDrawMap();
+
+    const mw = mapCanvas.width;
+    const mh = mapCanvas.height;
+
+    const cellW = mw / MAP_W;
+    const cellH = mh / MAP_H;
+
+    /*
+       Blue door
+    */
+
+    if (
+        explored[
+            Math.floor(blueDoor.y)
+        ] &&
+        explored[
+            Math.floor(blueDoor.y)
+        ][
+            Math.floor(blueDoor.x)
+        ]
+    ) {
+
+        mapCtx.fillStyle =
+            blueDoor.open
+            ? "#777"
+            : "#168cff";
+
+        mapCtx.fillRect(
+            blueDoor.x * cellW,
+            blueDoor.y * cellH,
+            cellW,
+            cellH
+        );
+    }
+
+    /*
+       Blue key
+    */
+
+    if (blueKey.active) {
+
+        const x =
+            Math.floor(blueKey.x);
+
+        const y =
+            Math.floor(blueKey.y);
+
+        if (
+            explored[y] &&
+            explored[y][x]
+        ) {
+
+            mapCtx.fillStyle =
+                "#168cff";
+
+            mapCtx.beginPath();
+
+            mapCtx.arc(
+                blueKey.x * cellW,
+                blueKey.y * cellH,
+                Math.max(
+                    3,
+                    cellW * .25
+                ),
+                0,
+                Math.PI * 2
+            );
+
+            mapCtx.fill();
+        }
+    }
+};
+
+/* =========================================================
+   HUD MARKER
+   ========================================================= */
+
+const blueberryMarker =
+    document.createElement("div");
+
+blueberryMarker.id =
+    "blueberryMarker";
+
+blueberryMarker.textContent =
+    "ð« BLUEBERRY FOUND";
+
+Object.assign(
+    blueberryMarker.style,
+    {
+        position: "absolute",
+        top: "78px",
+        left: "14px",
+        padding: "8px 11px",
+        border: "1px solid #168cff",
+        borderRadius: "7px",
+        background: "rgba(0,20,60,.8)",
+        color: "#5db7ff",
+        fontSize: "11px",
+        fontWeight: "bold",
+        display: "none",
+        pointerEvents: "none",
+        zIndex: "5"
+    }
+);
+
+document.getElementById("hud")
+    .appendChild(blueberryMarker);
+
+/* =========================================================
+   HUD EXTENSION
+   ========================================================= */
+
+const originalUpdateHUD =
+    updateHUD;
+
+updateHUD = function() {
+
+    originalUpdateHUD();
+
+    const objective =
+        document.getElementById(
+            "objective"
+        );
+
+    if (blueberryFound) {
+
+        objective.textContent =
+            player.hasKey
+            ? "REACH THE EXIT â¢ BLUEBERRY FOUND"
+            : "FIND THE KEY â¢ BLUEBERRY FOUND";
+    }
+};
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+const originalResetGame =
+    resetGame;
+
+resetGame = function() {
+
+    originalResetGame();
+
+    player.hasBlueKey = false;
+
+    blueDoor.open = false;
+
+    blueKey.active = true;
+
+    blueberryFound = false;
+
+    if (blueberryMarker) {
+        blueberryMarker.style.display =
+            "none";
+    }
+
+    generateMission();
+};
+
+/* =========================================================
+   START WITH A FRESH PROCEDURAL MISSION
+   ========================================================= */
+
+player.hasBlueKey = false;
+
+generateMission();
+
+/*
+   The map is now developer-hidden.
+   Press the map button whenever you want
+   to bring up the test map.
+*/
+
+document.getElementById("map")
+    .classList.remove("visible");
+
+document.getElementById("legend")
+    .classList.remove("visible");
+
 </script>
 
 </body>
