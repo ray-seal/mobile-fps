@@ -236,8 +236,6 @@
       border: 2px solid rgba(255,255,255,0.5);
 
       transform: translate(0,0);
-
-      transition: transform 0.025s linear;
     }
 
     /* =========================
@@ -547,7 +545,9 @@
 
       <h1>PAUSED</h1>
 
-      <p>Mission suspended.</p>
+      <p>
+        Mission suspended.
+      </p>
 
       <button id="resume">
         RESUME
@@ -655,9 +655,7 @@
 
     angle: 0,
 
-    moveSpeed: 2.8,
-
-    turnSpeed: 0.0008,
+    moveSpeed: 2.6,
 
     health: 100
 
@@ -870,13 +868,38 @@
 
   let lastLookX = 0;
 
+  let targetLookVelocity = 0;
+
   let lookVelocity = 0;
 
-  const LOOK_SENSITIVITY = 0.0008;
 
-  const LOOK_SMOOTHING = 0.28;
+  /*
+    This is deliberately much lower
+    than the previous version.
 
-  const LOOK_DEADZONE = 0.5;
+    It represents radians of rotation
+    per screen pixel of thumb movement.
+  */
+
+  const LOOK_SENSITIVITY =
+    0.0025;
+
+
+  /*
+    Higher = snappier.
+    Lower = smoother.
+  */
+
+  const LOOK_SMOOTHING =
+    0.18;
+
+
+  /*
+    Ignore tiny accidental movements.
+  */
+
+  const LOOK_DEADZONE =
+    0.5;
 
 
   lookZone.addEventListener(
@@ -894,7 +917,11 @@
       lastLookX =
         event.clientX;
 
-      lookVelocity = 0;
+      targetLookVelocity =
+        0;
+
+      lookVelocity =
+        0;
 
     }
   );
@@ -909,18 +936,15 @@
 
       event.preventDefault();
 
+
       const deltaX =
         event.clientX -
         lastLookX;
 
+
       lastLookX =
         event.clientX;
 
-
-      /*
-        Ignore tiny accidental
-        thumb movements.
-      */
 
       if (
         Math.abs(deltaX) <
@@ -932,24 +956,15 @@
       }
 
 
-      const targetVelocity =
-        deltaX *
-        LOOK_SENSITIVITY *
-        100;
-
-
       /*
-        Smooth the camera rather
-        than instantly applying
-        every touch movement.
+        Convert thumb movement
+        directly into a small
+        angular change.
       */
 
-      lookVelocity +=
-        (
-          targetVelocity -
-          lookVelocity
-        ) *
-        LOOK_SMOOTHING;
+      targetLookVelocity =
+        deltaX *
+        LOOK_SENSITIVITY;
 
     }
   );
@@ -961,7 +976,8 @@
 
       lookActive = false;
 
-      lookVelocity = 0;
+      targetLookVelocity =
+        0;
 
     }
   );
@@ -973,7 +989,8 @@
 
       lookActive = false;
 
-      lookVelocity = 0;
+      targetLookVelocity =
+        0;
 
     }
   );
@@ -1175,11 +1192,6 @@
         dx
       );
 
-
-    /*
-      Check wall between
-      player and enemy.
-    */
 
     const wallDistance =
       castRay(
@@ -1524,10 +1536,6 @@
     }
 
 
-    /*
-      Chase player.
-    */
-
     if (
       distance >
       enemy.attackRange
@@ -1577,11 +1585,6 @@
     }
 
     else {
-
-      /*
-        Attack only with
-        clear line of sight.
-      */
 
       const enemyAngle =
         Math.atan2(
@@ -1828,10 +1831,6 @@
       canvas.height;
 
 
-    /*
-      Sky.
-    */
-
     ctx.fillStyle =
       "#161616";
 
@@ -1843,10 +1842,6 @@
     );
 
 
-    /*
-      Floor.
-    */
-
     ctx.fillStyle =
       "#3b3028";
 
@@ -1857,10 +1852,6 @@
       height / 2
     );
 
-
-    /*
-      Walls.
-    */
 
     const rayCount =
       width;
@@ -1943,10 +1934,6 @@
     }
 
 
-    /*
-      Enemy.
-    */
-
     if (
       enemy.alive
     ) {
@@ -1955,10 +1942,6 @@
 
     }
 
-
-    /*
-      Weapon.
-    */
 
     renderWeapon();
 
@@ -1993,11 +1976,6 @@
         dx
       );
 
-
-    /*
-      Hide enemy when a wall
-      is between player and enemy.
-    */
 
     const wallDistance =
       castRay(
@@ -2073,10 +2051,6 @@
       size * 0.5;
 
 
-    /*
-      Shadow.
-    */
-
     ctx.fillStyle =
       "#080808";
 
@@ -2089,10 +2063,6 @@
       size * 0.12
     );
 
-
-    /*
-      Body.
-    */
 
     ctx.fillStyle =
       "#8b1515";
@@ -2107,10 +2077,6 @@
     );
 
 
-    /*
-      Head.
-    */
-
     ctx.fillStyle =
       "#b52222";
 
@@ -2122,10 +2088,6 @@
       size * 0.25
     );
 
-
-    /*
-      Eyes.
-    */
 
     ctx.fillStyle =
       "#fff";
@@ -2149,10 +2111,6 @@
       size * 0.06
     );
 
-
-    /*
-      Hit flash.
-    */
 
     if (
       enemy.hitTimer > 0
@@ -2243,19 +2201,28 @@
 
 
     /*
-      Apply smoothed camera movement.
+      Smoothly move the actual
+      look velocity toward the
+      thumb's requested velocity.
     */
 
-    if (
-      Math.abs(lookVelocity) >
-      0.00001
-    ) {
+    lookVelocity +=
+      (
+        targetLookVelocity -
+        lookVelocity
+      ) *
+      0.18;
 
-      player.angle +=
-        lookVelocity *
-        60;
 
-    }
+    /*
+      Apply exactly ONE rotation
+      per frame.
+
+      No extra multiplier.
+    */
+
+    player.angle +=
+      lookVelocity;
 
 
     /*
@@ -2275,9 +2242,7 @@
 
 
     /*
-      Normalise diagonal movement
-      so forward + strafe isn't
-      faster than straight movement.
+      Normalise diagonal movement.
     */
 
     const movementLength =
@@ -2304,6 +2269,7 @@
       Math.cos(
         player.angle
       );
+
 
     const sin =
       Math.sin(
@@ -2334,10 +2300,6 @@
       moveY
     );
 
-
-    /*
-      Enemy AI.
-    */
 
     updateEnemy(
       delta
