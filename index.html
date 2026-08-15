@@ -2010,7 +2010,7 @@ function castRay(angle) {
 
 
 /* =====================================================
-   ENEMY LINE OF SIGHT
+   ENEMY LINE OF SIGHT RAY
    ===================================================== */
 
 function enemyRay(
@@ -2019,7 +2019,7 @@ function enemyRay(
 ) {
 
   const step =
-    .025;
+    0.02;
 
   let distance =
     0;
@@ -2050,13 +2050,85 @@ function enemyRay(
         x,
         y
       )
-    )
+    ) {
+
       return distance;
+
+    }
 
   }
 
 
   return 25;
+
+}
+
+
+/* =====================================================
+   STRICT LINE OF SIGHT
+   ===================================================== */
+
+function hasLineOfSight(
+  enemy
+) {
+
+  const dx =
+    player.x -
+    enemy.x;
+
+  const dy =
+    player.y -
+    enemy.y;
+
+
+  const distance =
+    Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
+
+
+  const steps =
+    Math.ceil(
+      distance / 0.05
+    );
+
+
+  for (
+    let i = 1;
+    i < steps;
+    i++
+  ) {
+
+    const amount =
+      i / steps;
+
+
+    const x =
+      enemy.x +
+      dx * amount;
+
+
+    const y =
+      enemy.y +
+      dy * amount;
+
+
+    if (
+      isWall(
+        x,
+        y
+      )
+    ) {
+
+      return false;
+
+    }
+
+  }
+
+
+  return true;
 
 }
 
@@ -2102,16 +2174,26 @@ function updateEnemies(
 
     const distance =
       Math.sqrt(
-        dx*dx +
-        dy*dy
+        dx * dx +
+        dy * dy
       );
 
+
+    /*
+      Don't react to the player
+      from ridiculously far away.
+    */
 
     if (
       distance > 9
     )
       continue;
 
+
+    /*
+      Chase the player when outside
+      attack range.
+    */
 
     if (
       distance >
@@ -2120,8 +2202,8 @@ function updateEnemies(
 
       const length =
         Math.sqrt(
-          dx*dx +
-          dy*dy
+          dx * dx +
+          dy * dy
         );
 
 
@@ -2151,50 +2233,82 @@ function updateEnemies(
         moveY
       );
 
+
+      continue;
+
     }
 
-    else {
 
-      const angle =
-        Math.atan2(
-          dy,
-          dx
-        );
+    /*
+      ==============================
+      ATTACK CHECK
+      ==============================
 
+      Enemy must:
 
-      const wallDistance =
-        enemyRay(
-          enemy,
-          angle
-        );
-
-
-      const visible =
-        wallDistance >=
-        distance - 0.12;
+      1. Be alive
+      2. Be within range
+      3. Not be inside a wall
+      4. Be visible on screen
+      5. Have genuine line of sight
+    */
 
 
-      const enemyInWall =
-        isWall(
-          enemy.x,
-          enemy.y
-        );
+    const enemyInWall =
+      isWall(
+        enemy.x,
+        enemy.y
+      );
 
 
-      if (
-        visible &&
-        !enemyInWall &&
-        enemy.attackTimer <= 0
-      ) {
+    if (
+      enemyInWall
+    )
+      continue;
 
-        damagePlayer(
-          enemy.damage
-        );
 
-        enemy.attackTimer =
-          1.2;
+    const visible =
+      spritePosition(
+        enemy.x,
+        enemy.y
+      ) !== null;
 
-      }
+
+    if (
+      !visible
+    )
+      continue;
+
+
+    const lineOfSight =
+      hasLineOfSight(
+        enemy
+      );
+
+
+    if (
+      !lineOfSight
+    )
+      continue;
+
+
+    /*
+      Everything checks out.
+      Now the enemy is allowed
+      to attack.
+    */
+
+    if (
+      enemy.attackTimer <= 0
+    ) {
+
+      damagePlayer(
+        enemy.damage
+      );
+
+
+      enemy.attackTimer =
+        1.2;
 
     }
 
@@ -2232,7 +2346,7 @@ function moveEnemy(
 
   /*
     X movement
-  */
+    */
 
   if (
     !isWall(
@@ -2261,7 +2375,7 @@ function moveEnemy(
 
   /*
     Y movement
-  */
+    */
 
   if (
     !isWall(
@@ -2760,7 +2874,7 @@ function renderEnemy(
   /*
     Final safety check.
     An enemy inside a wall cannot
-    be rendered or attack.
+    be rendered.
   */
 
   if (
@@ -2788,6 +2902,10 @@ function renderEnemy(
   const hurt =
     enemy.hitTimer > 0;
 
+
+  /*
+    ARMOURED BLUEBERRY
+    */
 
   if (
     enemy.type ===
@@ -2883,6 +3001,10 @@ function renderEnemy(
 
   else {
 
+    /*
+      STANDARD GRUNT
+    */
+
     ctx.fillStyle =
       hurt
         ? "#fff"
@@ -2970,6 +3092,10 @@ function renderEnemy(
 
   }
 
+
+  /*
+    HEALTH BAR
+    */
 
   const barWidth =
     size*.72;
