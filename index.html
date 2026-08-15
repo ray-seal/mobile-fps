@@ -123,6 +123,22 @@ body {
   font-weight: bold;
 }
 
+#objective {
+  position: absolute;
+  top: 48px;
+  left: 12px;
+  z-index: 30;
+
+  padding: 6px 9px;
+
+  color: #ddd;
+  background: rgba(0,0,0,0.55);
+
+  border-radius: 5px;
+
+  font-size: 11px;
+}
+
 #pause {
   position: absolute;
   top: 12px;
@@ -142,8 +158,13 @@ body {
   font-size: 18px;
 }
 
+/* =========================
+   BOTTOM HUD
+   ========================= */
+
 #hud {
   position: absolute;
+
   left: 10px;
   right: 10px;
   bottom: 8px;
@@ -289,6 +310,35 @@ body {
 }
 
 /* =========================
+   USE
+   ========================= */
+
+#use {
+  position: absolute;
+
+  right: 130px;
+  bottom: 175px;
+
+  width: 58px;
+  height: 58px;
+
+  z-index: 40;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(255,255,255,0.3);
+
+  background: rgba(0,0,0,0.5);
+
+  color: white;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  touch-action: none;
+}
+
+/* =========================
    DAMAGE
    ========================= */
 
@@ -303,6 +353,63 @@ body {
   pointer-events: none;
 
   opacity: 0;
+}
+
+/* =========================
+   RELOAD MESSAGE
+   ========================= */
+
+#reload-message {
+  position: absolute;
+
+  left: 50%;
+  top: 62%;
+
+  transform: translate(-50%, -50%);
+
+  z-index: 50;
+
+  color: white;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  text-shadow: 2px 2px 0 #000;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+/* =========================
+   MESSAGE
+   ========================= */
+
+#message {
+  position: absolute;
+
+  left: 50%;
+  top: 72%;
+
+  transform: translate(-50%, -50%);
+
+  z-index: 50;
+
+  padding: 10px 16px;
+
+  color: white;
+
+  background: rgba(0,0,0,0.75);
+
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+
+  font-size: 13px;
+  font-weight: bold;
+
+  opacity: 0;
+
+  pointer-events: none;
 }
 
 /* =========================
@@ -349,7 +456,8 @@ body {
 }
 
 #resume,
-#restart {
+#restart,
+#continue {
   padding: 14px 30px;
 
   border: 0;
@@ -367,7 +475,8 @@ body {
    DEATH
    ========================= */
 
-#death-screen {
+#death-screen,
+#complete-screen {
   position: absolute;
   inset: 0;
 
@@ -378,18 +487,20 @@ body {
   justify-content: center;
   align-items: center;
 
-  background: rgba(60,0,0,0.9);
+  background: rgba(0,0,0,0.9);
 
   color: white;
 
   text-align: center;
 }
 
-#death-screen.visible {
+#death-screen.visible,
+#complete-screen.visible {
   display: flex;
 }
 
-.death-panel {
+.death-panel,
+.complete-panel {
   width: 75vw;
   max-width: 420px;
 
@@ -401,35 +512,21 @@ body {
   border-radius: 10px;
 }
 
+.complete-panel {
+  background: #061006;
+  border-color: #286b28;
+}
+
 .death-panel h1 {
   color: #f22;
   font-size: 32px;
   letter-spacing: 5px;
 }
 
-/* =========================
-   RELOAD MESSAGE
-   ========================= */
-
-#reload-message {
-  position: absolute;
-
-  left: 50%;
-  top: 62%;
-
-  transform: translate(-50%, -50%);
-
-  z-index: 50;
-
-  color: white;
-
-  font-size: 18px;
-  font-weight: bold;
-
-  text-shadow: 2px 2px 0 #000;
-
-  opacity: 0;
-  pointer-events: none;
+.complete-panel h1 {
+  color: #5f5;
+  font-size: 30px;
+  letter-spacing: 3px;
 }
 
 </style>
@@ -451,19 +548,35 @@ body {
     MISSION 01
   </div>
 
-  <button id="pause">Ⅱ</button>
+  <div id="objective">
+    FIND THE KEY
+  </div>
+
+  <button id="pause">
+    Ⅱ
+  </button>
 
   <div id="joystick">
     <div id="joystick-knob"></div>
   </div>
 
-  <button id="fire">FIRE</button>
+  <button id="fire">
+    FIRE
+  </button>
 
-  <button id="reload">RELOAD</button>
+  <button id="reload">
+    RELOAD
+  </button>
+
+  <button id="use">
+    USE
+  </button>
 
   <div id="reload-message">
     RELOADING...
   </div>
+
+  <div id="message"></div>
 
   <div id="hud">
 
@@ -478,8 +591,8 @@ body {
     </div>
 
     <div class="stat">
-      ARMOUR
-      <strong>0</strong>
+      KEY
+      <strong id="key-status">NO</strong>
     </div>
 
   </div>
@@ -490,7 +603,9 @@ body {
 
       <h1>PAUSED</h1>
 
-      <p>Mission suspended.</p>
+      <p>
+        Mission suspended.
+      </p>
 
       <button id="resume">
         RESUME
@@ -512,6 +627,25 @@ body {
 
       <button id="restart">
         RESTART
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="complete-screen">
+
+    <div class="complete-panel">
+
+      <h1>MISSION COMPLETE</h1>
+
+      <p>
+        You found the key, opened the door
+        and escaped the facility.
+      </p>
+
+      <button id="continue">
+        CONTINUE
       </button>
 
     </div>
@@ -554,7 +688,13 @@ window.addEventListener(
 
 
 /* =====================================================
-   WORLD
+   MAP
+
+   1 = wall
+   0 = floor
+   2 = decorative wall
+   3 = locked door
+   4 = exit
    ===================================================== */
 
 const map = [
@@ -573,9 +713,9 @@ const map = [
 
   [1,0,1,1,1,1,1,0,0,1],
 
-  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,3,0,0,1],
 
-  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,4,0,0,1],
 
   [1,1,1,1,1,1,1,1,1,1]
 
@@ -599,6 +739,52 @@ const player = {
   moveSpeed: 2.6,
 
   health: 100
+
+};
+
+
+/* =====================================================
+   KEY
+   ===================================================== */
+
+const key = {
+
+  x: 5.5,
+  y: 5.5,
+
+  collected: false,
+
+  pickupDistance: 0.7
+
+};
+
+
+/* =====================================================
+   DOOR
+   ===================================================== */
+
+const door = {
+
+  x: 6,
+  y: 7,
+
+  open: false
+
+};
+
+
+/* =====================================================
+   EXIT
+   ===================================================== */
+
+const exit = {
+
+  x: 6.5,
+  y: 8.5,
+
+  active: false,
+
+  triggered: false
 
 };
 
@@ -675,6 +861,8 @@ const weapon = {
 let paused = false;
 
 let gameOver = false;
+
+let missionComplete = false;
 
 
 /* =====================================================
@@ -941,6 +1129,7 @@ function isWall(
   const mapY =
     Math.floor(y);
 
+
   if (
     mapY < 0 ||
     mapY >= map.length ||
@@ -952,7 +1141,32 @@ function isWall(
 
   }
 
-  return map[mapY][mapX] === 1;
+
+  const tile =
+    map[mapY][mapX];
+
+
+  if (
+    tile === 1 ||
+    tile === 2
+  ) {
+
+    return true;
+
+  }
+
+
+  if (
+    tile === 3 &&
+    !door.open
+  ) {
+
+    return true;
+
+  }
+
+
+  return false;
 
 }
 
@@ -968,6 +1182,7 @@ function movePlayer(
   const newY =
     player.y + dy;
 
+
   if (
     !isWall(
       newX,
@@ -979,6 +1194,7 @@ function movePlayer(
       newX;
 
   }
+
 
   if (
     !isWall(
@@ -1039,6 +1255,7 @@ function getAudioContext() {
 
   }
 
+
   if (
     audioContext.state ===
     "suspended"
@@ -1048,12 +1265,18 @@ function getAudioContext() {
 
   }
 
+
   return audioContext;
 
 }
 
 
-function playGunSound() {
+function playTone(
+  frequency,
+  duration,
+  type = "square",
+  volume = 0.05
+) {
 
   const audio =
     getAudioContext();
@@ -1064,28 +1287,26 @@ function playGunSound() {
   const gain =
     audio.createGain();
 
+
   oscillator.type =
-    "sawtooth";
+    type;
 
-  oscillator.frequency.setValueAtTime(
-    130,
-    audio.currentTime
-  );
+  oscillator.frequency.value =
+    frequency;
 
-  oscillator.frequency.exponentialRampToValueAtTime(
-    55,
-    audio.currentTime + 0.08
-  );
 
   gain.gain.setValueAtTime(
-    0.16,
+    volume,
     audio.currentTime
   );
+
 
   gain.gain.exponentialRampToValueAtTime(
     0.001,
-    audio.currentTime + 0.09
+    audio.currentTime +
+    duration
   );
+
 
   oscillator.connect(gain);
 
@@ -1093,10 +1314,24 @@ function playGunSound() {
     audio.destination
   );
 
+
   oscillator.start();
 
   oscillator.stop(
-    audio.currentTime + 0.1
+    audio.currentTime +
+    duration
+  );
+
+}
+
+
+function playGunSound() {
+
+  playTone(
+    130,
+    0.09,
+    "sawtooth",
+    0.16
   );
 
 }
@@ -1104,41 +1339,89 @@ function playGunSound() {
 
 function playReloadSound() {
 
-  const audio =
-    getAudioContext();
-
-  const oscillator =
-    audio.createOscillator();
-
-  const gain =
-    audio.createGain();
-
-  oscillator.type =
-    "square";
-
-  oscillator.frequency.value =
-    220;
-
-  gain.gain.setValueAtTime(
-    0.05,
-    audio.currentTime
+  playTone(
+    220,
+    0.12,
+    "square",
+    0.05
   );
 
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    audio.currentTime + 0.12
+}
+
+
+function playKeySound() {
+
+  playTone(
+    660,
+    0.12,
+    "square",
+    0.06
   );
 
-  oscillator.connect(gain);
+  setTimeout(
+    () => {
 
-  gain.connect(
-    audio.destination
+      playTone(
+        880,
+        0.18,
+        "square",
+        0.06
+      );
+
+    },
+    100
   );
 
-  oscillator.start();
+}
 
-  oscillator.stop(
-    audio.currentTime + 0.13
+
+function playDoorSound() {
+
+  playTone(
+    90,
+    0.35,
+    "sawtooth",
+    0.08
+  );
+
+}
+
+
+function playCompleteSound() {
+
+  playTone(
+    523,
+    0.12,
+    "square",
+    0.06
+  );
+
+  setTimeout(
+    () => {
+
+      playTone(
+        659,
+        0.12,
+        "square",
+        0.06
+      );
+
+    },
+    120
+  );
+
+  setTimeout(
+    () => {
+
+      playTone(
+        784,
+        0.25,
+        "square",
+        0.06
+      );
+
+    },
+    240
   );
 
 }
@@ -1154,6 +1437,21 @@ const ammoDisplay =
 const healthDisplay =
   document.getElementById("health");
 
+const keyStatus =
+  document.getElementById(
+    "key-status"
+  );
+
+const objective =
+  document.getElementById(
+    "objective"
+  );
+
+const message =
+  document.getElementById(
+    "message"
+  );
+
 const reloadMessage =
   document.getElementById(
     "reload-message"
@@ -1166,6 +1464,30 @@ function updateAmmoDisplay() {
     weapon.ammo +
     " / " +
     weapon.reserveAmmo;
+
+}
+
+
+function showMessage(
+  text
+) {
+
+  message.textContent =
+    text;
+
+  message.style.opacity =
+    "1";
+
+
+  setTimeout(
+    () => {
+
+      message.style.opacity =
+        "0";
+
+    },
+    1600
+  );
 
 }
 
@@ -1229,6 +1551,9 @@ function fireWeapon() {
   if (gameOver)
     return;
 
+  if (missionComplete)
+    return;
+
   if (paused)
     return;
 
@@ -1240,6 +1565,7 @@ function fireWeapon() {
   )
     return;
 
+
   if (
     weapon.ammo <= 0
   ) {
@@ -1249,6 +1575,7 @@ function fireWeapon() {
     return;
 
   }
+
 
   weapon.ammo--;
 
@@ -1261,15 +1588,11 @@ function fireWeapon() {
   weapon.muzzleFlash =
     0.08;
 
+
   updateAmmoDisplay();
 
   playGunSound();
 
-
-  /*
-    Weapon is fired directly
-    through the crosshair.
-  */
 
   if (!enemy.alive)
     return;
@@ -1283,11 +1606,13 @@ function fireWeapon() {
     enemy.y -
     player.y;
 
+
   const distance =
     Math.sqrt(
       dx * dx +
       dy * dy
     );
+
 
   const enemyAngle =
     Math.atan2(
@@ -1295,15 +1620,12 @@ function fireWeapon() {
       dx
     );
 
+
   const wallDistance =
     castRay(
       enemyAngle
     );
 
-
-  /*
-    Wall blocks bullet.
-  */
 
   if (
     wallDistance <
@@ -1342,11 +1664,6 @@ function fireWeapon() {
   }
 
 
-  /*
-    Hitbox gets slightly larger
-    than the crosshair itself.
-  */
-
   if (
     Math.abs(difference) <
     0.14 &&
@@ -1364,10 +1681,17 @@ function fireWeapon() {
       enemy.health <= 0
     ) {
 
-      enemy.health = 0;
+      enemy.health =
+        0;
 
       enemy.alive =
         false;
+
+      showMessage(
+        "ENEMY DOWN"
+      );
+
+      updateObjective();
 
     }
 
@@ -1381,7 +1705,9 @@ function fireWeapon() {
    ===================================================== */
 
 const reloadButton =
-  document.getElementById("reload");
+  document.getElementById(
+    "reload"
+  );
 
 
 reloadButton.addEventListener(
@@ -1399,6 +1725,9 @@ reloadButton.addEventListener(
 function reloadWeapon() {
 
   if (gameOver)
+    return;
+
+  if (missionComplete)
     return;
 
   if (paused)
@@ -1425,10 +1754,316 @@ function reloadWeapon() {
   weapon.reloadTimer =
     weapon.reloadTime;
 
+
   reloadMessage.style.opacity =
     "1";
 
+
   playReloadSound();
+
+}
+
+
+/* =====================================================
+   USE BUTTON
+   ===================================================== */
+
+const useButton =
+  document.getElementById("use");
+
+
+useButton.addEventListener(
+  "pointerdown",
+  event => {
+
+    event.preventDefault();
+
+    useAction();
+
+  }
+);
+
+
+function useAction() {
+
+  if (gameOver)
+    return;
+
+  if (missionComplete)
+    return;
+
+
+  /*
+    KEY
+  */
+
+  if (
+    !key.collected &&
+    distanceBetween(
+      player.x,
+      player.y,
+      key.x,
+      key.y
+    ) <
+    1.0
+  ) {
+
+    collectKey();
+
+    return;
+
+  }
+
+
+  /*
+    DOOR
+  */
+
+  const doorDistance =
+    distanceBetween(
+      player.x,
+      player.y,
+      door.x + 0.5,
+      door.y + 0.5
+    );
+
+
+  if (
+    doorDistance < 1.5 &&
+    !door.open
+  ) {
+
+    if (
+      key.collected
+    ) {
+
+      openDoor();
+
+    }
+
+    else {
+
+      showMessage(
+        "LOCKED - NEED KEY"
+      );
+
+    }
+
+    return;
+
+  }
+
+
+  /*
+    EXIT
+  */
+
+  const exitDistance =
+    distanceBetween(
+      player.x,
+      player.y,
+      exit.x,
+      exit.y
+    );
+
+
+  if (
+    exitDistance < 1.3
+  ) {
+
+    if (
+      exit.active
+    ) {
+
+      completeMission();
+
+    }
+
+    else {
+
+      showMessage(
+        "EXIT LOCKED"
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   KEY
+   ===================================================== */
+
+function collectKey() {
+
+  if (
+    key.collected
+  )
+    return;
+
+
+  key.collected =
+    true;
+
+
+  keyStatus.textContent =
+    "YES";
+
+
+  playKeySound();
+
+  showMessage(
+    "KEY ACQUIRED"
+  );
+
+
+  updateObjective();
+
+}
+
+
+/* =====================================================
+   DOOR
+   ===================================================== */
+
+function openDoor() {
+
+  if (
+    door.open
+  )
+    return;
+
+
+  door.open =
+    true;
+
+
+  playDoorSound();
+
+  showMessage(
+    "DOOR UNLOCKED"
+  );
+
+
+  updateObjective();
+
+}
+
+
+/* =====================================================
+   OBJECTIVE
+   ===================================================== */
+
+function updateObjective() {
+
+  if (
+    missionComplete
+  ) {
+
+    objective.textContent =
+      "MISSION COMPLETE";
+
+    return;
+
+  }
+
+
+  if (
+    !key.collected
+  ) {
+
+    objective.textContent =
+      "FIND THE KEY";
+
+    return;
+
+  }
+
+
+  if (
+    !door.open
+  ) {
+
+    objective.textContent =
+      "FIND THE LOCKED DOOR";
+
+    return;
+
+  }
+
+
+  exit.active =
+    true;
+
+
+  objective.textContent =
+    "REACH THE EXIT";
+
+}
+
+
+/* =====================================================
+   EXIT
+   ===================================================== */
+
+function checkExit() {
+
+  if (
+    !exit.active ||
+    exit.triggered
+  )
+    return;
+
+
+  const distance =
+    distanceBetween(
+      player.x,
+      player.y,
+      exit.x,
+      exit.y
+    );
+
+
+  if (
+    distance < 1.1
+  ) {
+
+    exit.triggered =
+      true;
+
+    showMessage(
+      "PRESS USE TO ESCAPE"
+    );
+
+  }
+
+}
+
+
+function completeMission() {
+
+  if (
+    missionComplete
+  )
+    return;
+
+
+  missionComplete =
+    true;
+
+
+  playCompleteSound();
+
+
+  document
+    .getElementById(
+      "complete-screen"
+    )
+    .classList.add(
+      "visible"
+    );
 
 }
 
@@ -1447,6 +2082,7 @@ function castRayFromEnemy(
   let distance =
     0;
 
+
   while (
     distance < 20
   ) {
@@ -1454,15 +2090,18 @@ function castRayFromEnemy(
     distance +=
       step;
 
+
     const x =
       enemy.x +
       Math.cos(angle) *
       distance;
 
+
     const y =
       enemy.y +
       Math.sin(angle) *
       distance;
+
 
     if (
       isWall(
@@ -1476,6 +2115,7 @@ function castRayFromEnemy(
     }
 
   }
+
 
   return 20;
 
@@ -1492,6 +2132,7 @@ function updateEnemy(
 
   if (!enemy.alive)
     return;
+
 
   enemy.attackTimer -=
     delta;
@@ -1532,6 +2173,7 @@ function updateEnemy(
       player.y -
       enemy.y;
 
+
     const length =
       Math.sqrt(
         dx * dx +
@@ -1555,6 +2197,7 @@ function updateEnemy(
         enemy.speed *
         delta;
 
+
       moveEnemy(
         moveX,
         moveY
@@ -1573,6 +2216,7 @@ function updateEnemy(
         player.x -
         enemy.x
       );
+
 
     const wallDistance =
       castRayFromEnemy(
@@ -1656,6 +2300,7 @@ function damagePlayer() {
   if (gameOver)
     return;
 
+
   player.health -=
     10;
 
@@ -1695,6 +2340,7 @@ function flashDamage() {
       "damage-flash"
     );
 
+
   flash.style.opacity =
     "1";
 
@@ -1717,13 +2363,19 @@ function killPlayer() {
   gameOver =
     true;
 
+
   input.moveX = 0;
   input.moveY = 0;
   input.firing = false;
 
+
   document
-    .getElementById("death-screen")
-    .classList.add("visible");
+    .getElementById(
+      "death-screen"
+    )
+    .classList.add(
+      "visible"
+    );
 
 }
 
@@ -1843,6 +2495,7 @@ function render() {
       x / width -
       0.5;
 
+
     const rayAngle =
       player.angle +
       cameraX *
@@ -1910,6 +2563,32 @@ function render() {
 
 
   /*
+    Key.
+  */
+
+  if (
+    !key.collected
+  ) {
+
+    renderKey();
+
+  }
+
+
+  /*
+    Exit marker.
+  */
+
+  if (
+    exit.active
+  ) {
+
+    renderExit();
+
+  }
+
+
+  /*
     Enemy.
   */
 
@@ -1927,6 +2606,296 @@ function render() {
   */
 
   renderWeapon();
+
+}
+
+
+/* =====================================================
+   KEY RENDER
+   ===================================================== */
+
+function renderKey() {
+
+  const dx =
+    key.x -
+    player.x;
+
+  const dy =
+    key.y -
+    player.y;
+
+
+  const distance =
+    Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
+
+
+  const keyAngle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+
+  const wallDistance =
+    castRay(
+      keyAngle
+    );
+
+
+  if (
+    wallDistance <
+    distance
+  ) {
+
+    return;
+
+  }
+
+
+  let angle =
+    keyAngle -
+    player.angle;
+
+
+  while (
+    angle >
+    Math.PI
+  ) {
+
+    angle -=
+      Math.PI * 2;
+
+  }
+
+
+  while (
+    angle <
+    -Math.PI
+  ) {
+
+    angle +=
+      Math.PI * 2;
+
+  }
+
+
+  if (
+    Math.abs(angle) >
+    FOV / 2
+  ) {
+
+    return;
+
+  }
+
+
+  const screenX =
+    canvas.width / 2 +
+    (
+      angle / FOV
+    ) *
+    canvas.width;
+
+
+  const size =
+    Math.max(
+      6,
+      Math.min(
+        30,
+        canvas.height /
+        distance *
+        0.15
+      )
+    );
+
+
+  const screenY =
+    canvas.height / 2;
+
+
+  /*
+    Key head.
+  */
+
+  ctx.fillStyle =
+    "#ffd83d";
+
+  ctx.fillRect(
+    screenX -
+    size * 0.35,
+    screenY -
+    size * 0.45,
+    size * 0.7,
+    size * 0.25
+  );
+
+
+  /*
+    Key shaft.
+  */
+
+  ctx.fillRect(
+    screenX -
+    size * 0.05,
+    screenY -
+    size * 0.2,
+    size * 0.1,
+    size * 0.65
+  );
+
+
+  /*
+    Key teeth.
+  */
+
+  ctx.fillRect(
+    screenX,
+    screenY +
+    size * 0.25,
+    size * 0.18,
+    size * 0.18
+  );
+
+}
+
+
+/* =====================================================
+   EXIT RENDER
+   ===================================================== */
+
+function renderExit() {
+
+  const dx =
+    exit.x -
+    player.x;
+
+  const dy =
+    exit.y -
+    player.y;
+
+
+  const distance =
+    Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
+
+
+  const exitAngle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+
+  const wallDistance =
+    castRay(
+      exitAngle
+    );
+
+
+  if (
+    wallDistance <
+    distance
+  ) {
+
+    return;
+
+  }
+
+
+  let angle =
+    exitAngle -
+    player.angle;
+
+
+  while (
+    angle >
+    Math.PI
+  ) {
+
+    angle -=
+      Math.PI * 2;
+
+  }
+
+
+  while (
+    angle <
+    -Math.PI
+  ) {
+
+    angle +=
+      Math.PI * 2;
+
+  }
+
+
+  if (
+    Math.abs(angle) >
+    FOV / 2
+  ) {
+
+    return;
+
+  }
+
+
+  const screenX =
+    canvas.width / 2 +
+    (
+      angle / FOV
+    ) *
+    canvas.width;
+
+
+  const size =
+    Math.max(
+      12,
+      Math.min(
+        60,
+        canvas.height /
+        distance *
+        0.45
+      )
+    );
+
+
+  const screenY =
+    canvas.height / 2;
+
+
+  ctx.strokeStyle =
+    "#44ff66";
+
+  ctx.lineWidth =
+    3;
+
+
+  ctx.strokeRect(
+    screenX -
+    size / 2,
+    screenY -
+    size,
+    size,
+    size * 1.8
+  );
+
+
+  ctx.fillStyle =
+    "rgba(40,255,80,0.18)";
+
+  ctx.fillRect(
+    screenX -
+    size / 2,
+    screenY -
+    size,
+    size,
+    size * 1.8
+  );
 
 }
 
@@ -2034,10 +3003,6 @@ function renderEnemy() {
     size * 0.5;
 
 
-  /*
-    Shadow.
-  */
-
   ctx.fillStyle =
     "#080808";
 
@@ -2050,11 +3015,6 @@ function renderEnemy() {
     size * 0.12
   );
 
-
-  /*
-    Enemy gets brighter
-    when hit.
-  */
 
   if (
     enemy.hitTimer > 0
@@ -2073,10 +3033,6 @@ function renderEnemy() {
   }
 
 
-  /*
-    Body.
-  */
-
   ctx.fillRect(
     screenX -
     size * 0.25,
@@ -2086,10 +3042,6 @@ function renderEnemy() {
     size * 0.55
   );
 
-
-  /*
-    Head.
-  */
 
   if (
     enemy.hitTimer > 0
@@ -2117,10 +3069,6 @@ function renderEnemy() {
   );
 
 
-  /*
-    Eyes.
-  */
-
   ctx.fillStyle =
     "#fff";
 
@@ -2133,6 +3081,7 @@ function renderEnemy() {
     size * 0.06
   );
 
+
   ctx.fillRect(
     screenX +
     size * 0.07,
@@ -2144,7 +3093,7 @@ function renderEnemy() {
 
 
   /*
-    Tiny health bar.
+    Enemy health.
   */
 
   const barWidth =
@@ -2185,7 +3134,7 @@ function renderEnemy() {
 
 
 /* =====================================================
-   WEAPON RENDER
+   WEAPON
    ===================================================== */
 
 function renderWeapon() {
@@ -2196,11 +3145,6 @@ function renderWeapon() {
   const height =
     canvas.height;
 
-
-  /*
-    Recoil moves the weapon
-    down slightly.
-  */
 
   const recoil =
     weapon.recoil;
@@ -2224,10 +3168,6 @@ function renderWeapon() {
     recoil * height;
 
 
-  /*
-    Pistol body.
-  */
-
   ctx.fillStyle =
     "#222";
 
@@ -2238,10 +3178,6 @@ function renderWeapon() {
     gunHeight
   );
 
-
-  /*
-    Pistol top.
-  */
 
   ctx.fillStyle =
     "#555";
@@ -2256,10 +3192,6 @@ function renderWeapon() {
   );
 
 
-  /*
-    Muzzle flash.
-  */
-
   if (
     weapon.muzzleFlash > 0
   ) {
@@ -2267,16 +3199,20 @@ function renderWeapon() {
     const flashSize =
       gunWidth * 0.75;
 
+
     ctx.fillStyle =
       "#fff";
 
+
     ctx.beginPath();
+
 
     ctx.moveTo(
       width / 2,
       gunY -
       gunHeight * 0.2
     );
+
 
     ctx.lineTo(
       width / 2 -
@@ -2285,11 +3221,13 @@ function renderWeapon() {
       gunHeight * 0.75
     );
 
+
     ctx.lineTo(
       width / 2,
       gunY -
       gunHeight * 0.55
     );
+
 
     ctx.lineTo(
       width / 2 +
@@ -2297,6 +3235,7 @@ function renderWeapon() {
       gunY -
       gunHeight * 0.75
     );
+
 
     ctx.closePath();
 
@@ -2392,6 +3331,21 @@ function restartGame() {
     100;
 
 
+  key.collected =
+    false;
+
+
+  door.open =
+    false;
+
+
+  exit.active =
+    false;
+
+  exit.triggered =
+    false;
+
+
   enemy.x =
     enemy.startX;
 
@@ -2436,12 +3390,21 @@ function restartGame() {
   healthDisplay.textContent =
     player.health;
 
+  keyStatus.textContent =
+    "NO";
+
+
   updateAmmoDisplay();
+
+  updateObjective();
 
 
   reloadMessage.style.opacity =
     "0";
 
+
+  missionComplete =
+    false;
 
   gameOver =
     false;
@@ -2451,10 +3414,41 @@ function restartGame() {
 
 
   document
-    .getElementById("death-screen")
-    .classList.remove("visible");
+    .getElementById(
+      "death-screen"
+    )
+    .classList.remove(
+      "visible"
+    );
+
+
+  document
+    .getElementById(
+      "complete-screen"
+    )
+    .classList.remove(
+      "visible"
+    );
 
 }
+
+
+/* =====================================================
+   CONTINUE
+   ===================================================== */
+
+document
+  .getElementById("continue")
+  .addEventListener(
+    "pointerdown",
+    event => {
+
+      event.preventDefault();
+
+      restartGame();
+
+    }
+  );
 
 
 /* =====================================================
@@ -2466,6 +3460,9 @@ function update(
 ) {
 
   if (gameOver)
+    return;
+
+  if (missionComplete)
     return;
 
 
@@ -2544,14 +3541,18 @@ function update(
       weapon.ammo +=
         loaded;
 
+
       weapon.reserveAmmo -=
         loaded;
+
 
       weapon.reloading =
         false;
 
+
       reloadMessage.style.opacity =
         "0";
+
 
       updateAmmoDisplay();
 
@@ -2640,6 +3641,39 @@ function update(
 
 
   /*
+    KEY AUTO-DETECTION
+
+    We still require USE,
+    but this makes the key
+    appear obviously close.
+  */
+
+  if (
+    !key.collected &&
+    distanceBetween(
+      player.x,
+      player.y,
+      key.x,
+      key.y
+    ) <
+    key.pickupDistance
+  ) {
+
+    showMessage(
+      "PRESS USE TO TAKE KEY"
+    );
+
+  }
+
+
+  /*
+    EXIT
+  */
+
+  checkExit();
+
+
+  /*
     ENEMY
   */
 
@@ -2697,6 +3731,8 @@ function gameLoop(
    ===================================================== */
 
 updateAmmoDisplay();
+
+updateObjective();
 
 requestAnimationFrame(
   gameLoop
