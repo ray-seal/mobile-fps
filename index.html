@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
->
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
 
 <meta name="theme-color" content="#050505">
 
@@ -24,10 +25,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  background: #050505;
+  background: #000;
   touch-action: none;
   font-family: Arial, sans-serif;
 }
@@ -47,20 +48,25 @@ body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  display: block;
   image-rendering: pixelated;
 }
 
-/* =========================
-   CROSSHAIR
-   ========================= */
+#look-zone {
+  position: absolute;
+  top: 65px;
+  right: 0;
+  width: 55vw;
+  height: 70vh;
+  z-index: 5;
+  touch-action: none;
+}
 
 #crosshair {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 20;
@@ -70,463 +76,249 @@ body {
 #crosshair::after {
   content: "";
   position: absolute;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,.8);
 }
 
 #crosshair::before {
-  width: 24px;
+  width: 22px;
   height: 2px;
+  top: 10px;
   left: 0;
-  top: 11px;
 }
 
 #crosshair::after {
   width: 2px;
-  height: 24px;
-  left: 11px;
+  height: 22px;
+  left: 10px;
   top: 0;
 }
 
-/* =========================
-   LOOK
-   ========================= */
-
-#look-zone {
+#mission,
+#objective {
   position: absolute;
-  top: 70px;
-  right: 0;
-  width: 55vw;
-  height: 70vh;
-  z-index: 5;
-  touch-action: none;
-}
-
-/* =========================
-   HUD
-   ========================= */
-
-#mission {
-  position: absolute;
-  top: 12px;
   left: 12px;
   z-index: 30;
-
-  padding: 7px 10px;
-
   color: white;
-  background: rgba(0,0,0,0.65);
-
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 6px;
-
-  font-size: 13px;
+  background: rgba(0,0,0,.65);
+  border-radius: 5px;
   font-weight: bold;
 }
 
+#mission {
+  top: 12px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
 #objective {
-  position: absolute;
   top: 48px;
-  left: 12px;
-  z-index: 30;
-
   padding: 6px 9px;
-
-  color: #ddd;
-  background: rgba(0,0,0,0.55);
-
-  border-radius: 5px;
-
   font-size: 11px;
+}
+
+button {
+  color: white;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.3);
 }
 
 #pause {
   position: absolute;
-  top: 12px;
   right: 12px;
-
+  top: 12px;
   width: 44px;
   height: 44px;
-
   z-index: 40;
-
-  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 7px;
-
-  background: rgba(0,0,0,0.65);
-  color: white;
-
   font-size: 18px;
 }
 
-/* =========================
-   BOTTOM HUD
-   ========================= */
-
-#hud {
-  position: absolute;
-
-  left: 10px;
-  right: 10px;
-  bottom: 8px;
-
-  height: 55px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  z-index: 30;
-
-  pointer-events: none;
-}
-
-.stat {
-  min-width: 90px;
-
-  padding: 5px 10px;
-
-  text-align: center;
-
-  color: white;
-
-  background: rgba(0,0,0,0.75);
-
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 6px;
-
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.stat strong {
-  display: block;
-  font-size: 20px;
-}
-
-#weapon {
-  min-width: 125px;
-}
-
-/* =========================
-   JOYSTICK
-   ========================= */
-
 #joystick {
   position: absolute;
-
   left: 25px;
   bottom: 80px;
-
   width: 125px;
   height: 125px;
-
   z-index: 40;
-
   border-radius: 50%;
-
-  border: 2px solid rgba(255,255,255,0.3);
-
-  background: rgba(0,0,0,0.35);
-
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(0,0,0,.35);
   display: flex;
   justify-content: center;
   align-items: center;
-
   touch-action: none;
 }
 
 #joystick-knob {
   width: 55px;
   height: 55px;
-
   border-radius: 50%;
-
-  background: rgba(255,255,255,0.18);
-
-  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,.18);
+  border: 2px solid rgba(255,255,255,.5);
 }
-
-/* =========================
-   FIRE
-   ========================= */
 
 #fire {
   position: absolute;
-
   right: 25px;
   bottom: 85px;
-
   width: 88px;
   height: 88px;
-
   z-index: 40;
-
   border-radius: 50%;
-
-  border: 2px solid rgba(255,255,255,0.4);
-
-  background: rgba(0,0,0,0.5);
-
-  color: white;
-
   font-size: 16px;
   font-weight: bold;
-
   touch-action: none;
 }
 
 #fire.active {
-  transform: scale(0.92);
-  background: rgba(255,80,0,0.4);
+  transform: scale(.92);
+  background: rgba(255,70,0,.45);
 }
-
-/* =========================
-   RELOAD
-   ========================= */
 
 #reload {
   position: absolute;
-
   right: 130px;
   bottom: 105px;
-
   width: 58px;
   height: 58px;
-
   z-index: 40;
-
   border-radius: 50%;
-
-  border: 2px solid rgba(255,255,255,0.3);
-
-  background: rgba(0,0,0,0.5);
-
-  color: white;
-
   font-size: 10px;
   font-weight: bold;
-
   touch-action: none;
 }
-
-/* =========================
-   USE
-   ========================= */
 
 #use {
   position: absolute;
-
   right: 130px;
   bottom: 175px;
-
   width: 58px;
   height: 58px;
-
   z-index: 40;
-
   border-radius: 50%;
-
-  border: 2px solid rgba(255,255,255,0.3);
-
-  background: rgba(0,0,0,0.5);
-
-  color: white;
-
   font-size: 11px;
   font-weight: bold;
-
   touch-action: none;
 }
 
-/* =========================
-   DAMAGE
-   ========================= */
+#hud {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  height: 55px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.stat {
+  min-width: 82px;
+  padding: 5px 9px;
+  text-align: center;
+  color: white;
+  background: rgba(0,0,0,.75);
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.stat strong {
+  display: block;
+  font-size: 18px;
+}
+
+#weapon {
+  min-width: 115px;
+}
 
 #damage-flash {
   position: absolute;
   inset: 0;
-
   z-index: 25;
-
-  background: rgba(255,0,0,0.35);
-
+  background: rgba(255,0,0,.35);
   pointer-events: none;
-
   opacity: 0;
 }
 
-/* =========================
-   RELOAD MESSAGE
-   ========================= */
-
+#message,
 #reload-message {
   position: absolute;
-
   left: 50%;
-  top: 62%;
-
-  transform: translate(-50%, -50%);
-
+  transform: translateX(-50%);
   z-index: 50;
-
   color: white;
-
-  font-size: 18px;
   font-weight: bold;
-
   text-shadow: 2px 2px 0 #000;
-
-  opacity: 0;
-
   pointer-events: none;
+  opacity: 0;
 }
-
-/* =========================
-   MESSAGE
-   ========================= */
 
 #message {
-  position: absolute;
-
-  left: 50%;
-  top: 72%;
-
-  transform: translate(-50%, -50%);
-
-  z-index: 50;
-
-  padding: 10px 16px;
-
-  color: white;
-
-  background: rgba(0,0,0,0.75);
-
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 6px;
-
+  top: 70%;
+  padding: 9px 14px;
+  background: rgba(0,0,0,.7);
+  border-radius: 5px;
   font-size: 13px;
-  font-weight: bold;
-
-  opacity: 0;
-
-  pointer-events: none;
 }
 
-/* =========================
-   PAUSE
-   ========================= */
+#reload-message {
+  top: 62%;
+  font-size: 17px;
+}
 
-#pause-screen {
+.overlay {
   position: absolute;
   inset: 0;
-
   z-index: 100;
-
   display: none;
-
   justify-content: center;
   align-items: center;
-
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,.88);
+  color: white;
+  text-align: center;
 }
 
-#pause-screen.visible {
+.overlay.visible {
   display: flex;
 }
 
-.pause-panel {
-  width: 70vw;
-  max-width: 400px;
-
+.panel {
+  width: 76vw;
+  max-width: 420px;
   padding: 30px;
-
-  text-align: center;
-
-  color: white;
-
   background: #111;
-
   border: 2px solid #555;
   border-radius: 10px;
 }
 
-.pause-panel h1 {
-  margin-top: 0;
+.panel h1 {
   letter-spacing: 4px;
 }
 
-#resume,
-#restart,
-#continue {
-  padding: 14px 30px;
+#death-screen .panel {
+  border-color: #800;
+}
 
-  border: 0;
+#death-screen h1 {
+  color: #f33;
+}
+
+#complete-screen .panel {
+  border-color: #287528;
+}
+
+#complete-screen h1 {
+  color: #55ff55;
+}
+
+.overlay button {
+  padding: 13px 28px;
   border-radius: 6px;
-
-  background: #333;
-
-  color: white;
-
   font-size: 16px;
   font-weight: bold;
-}
-
-/* =========================
-   DEATH
-   ========================= */
-
-#death-screen,
-#complete-screen {
-  position: absolute;
-  inset: 0;
-
-  z-index: 110;
-
-  display: none;
-
-  justify-content: center;
-  align-items: center;
-
-  background: rgba(0,0,0,0.9);
-
-  color: white;
-
-  text-align: center;
-}
-
-#death-screen.visible,
-#complete-screen.visible {
-  display: flex;
-}
-
-.death-panel,
-.complete-panel {
-  width: 75vw;
-  max-width: 420px;
-
-  padding: 30px;
-
-  background: #100000;
-
-  border: 2px solid #700;
-  border-radius: 10px;
-}
-
-.complete-panel {
-  background: #061006;
-  border-color: #286b28;
-}
-
-.death-panel h1 {
-  color: #f22;
-  font-size: 32px;
-  letter-spacing: 5px;
-}
-
-.complete-panel h1 {
-  color: #5f5;
-  font-size: 30px;
-  letter-spacing: 3px;
 }
 
 </style>
@@ -536,123 +328,110 @@ body {
 
 <div id="game">
 
-  <canvas id="screen"></canvas>
+<canvas id="screen"></canvas>
 
-  <div id="look-zone"></div>
+<div id="look-zone"></div>
 
-  <div id="damage-flash"></div>
+<div id="damage-flash"></div>
 
-  <div id="crosshair"></div>
+<div id="crosshair"></div>
 
-  <div id="mission">
-    MISSION 01
+<div id="mission">MISSION 01</div>
+
+<div id="objective">FIND THE KEY</div>
+
+<button id="pause">Ⅱ</button>
+
+<div id="joystick">
+  <div id="joystick-knob"></div>
+</div>
+
+<button id="use">USE</button>
+
+<button id="reload">RELOAD</button>
+
+<button id="fire">FIRE</button>
+
+<div id="message"></div>
+
+<div id="reload-message">
+  RELOADING...
+</div>
+
+<div id="hud">
+
+  <div class="stat">
+    HEALTH
+    <strong id="health">100</strong>
   </div>
 
-  <div id="objective">
-    FIND THE KEY
+  <div class="stat" id="weapon">
+    PISTOL
+    <strong id="ammo">12 / 48</strong>
   </div>
 
-  <button id="pause">
-    Ⅱ
-  </button>
-
-  <div id="joystick">
-    <div id="joystick-knob"></div>
+  <div class="stat">
+    KEY
+    <strong id="key-status">NO</strong>
   </div>
 
-  <button id="fire">
-    FIRE
-  </button>
+</div>
 
-  <button id="reload">
-    RELOAD
-  </button>
+<div id="pause-screen" class="overlay">
 
-  <button id="use">
-    USE
-  </button>
+  <div class="panel">
 
-  <div id="reload-message">
-    RELOADING...
-  </div>
+    <h1>PAUSED</h1>
 
-  <div id="message"></div>
+    <p>Mission suspended.</p>
 
-  <div id="hud">
-
-    <div class="stat">
-      HEALTH
-      <strong id="health">100</strong>
-    </div>
-
-    <div class="stat" id="weapon">
-      PISTOL
-      <strong id="ammo">12 / 48</strong>
-    </div>
-
-    <div class="stat">
-      KEY
-      <strong id="key-status">NO</strong>
-    </div>
-
-  </div>
-
-  <div id="pause-screen">
-
-    <div class="pause-panel">
-
-      <h1>PAUSED</h1>
-
-      <p>
-        Mission suspended.
-      </p>
-
-      <button id="resume">
-        RESUME
-      </button>
-
-    </div>
-
-  </div>
-
-  <div id="death-screen">
-
-    <div class="death-panel">
-
-      <h1>YOU DIED</h1>
-
-      <p>
-        The facility has claimed another victim.
-      </p>
-
-      <button id="restart">
-        RESTART
-      </button>
-
-    </div>
-
-  </div>
-
-  <div id="complete-screen">
-
-    <div class="complete-panel">
-
-      <h1>MISSION COMPLETE</h1>
-
-      <p>
-        You found the key, opened the door
-        and escaped the facility.
-      </p>
-
-      <button id="continue">
-        CONTINUE
-      </button>
-
-    </div>
+    <button id="resume">
+      RESUME
+    </button>
 
   </div>
 
 </div>
+
+<div id="death-screen" class="overlay">
+
+  <div class="panel">
+
+    <h1>YOU DIED</h1>
+
+    <p>
+      The facility has claimed another victim.
+    </p>
+
+    <button id="restart">
+      RESTART
+    </button>
+
+  </div>
+
+</div>
+
+<div id="complete-screen" class="overlay">
+
+  <div class="panel">
+
+    <h1>MISSION COMPLETE</h1>
+
+    <p>
+      You found the key, opened the door
+      and escaped the facility.
+    </p>
+
+    <button id="continue">
+      CONTINUE
+    </button>
+
+  </div>
+
+</div>
+
+</div>
+
 
 <script>
 
@@ -667,7 +446,6 @@ const ctx =
   canvas.getContext("2d");
 
 ctx.imageSmoothingEnabled = false;
-
 
 function resizeCanvas() {
 
@@ -692,32 +470,37 @@ window.addEventListener(
 
    1 = wall
    0 = floor
-   2 = decorative wall
    3 = locked door
    4 = exit
    ===================================================== */
 
 const map = [
 
-  [1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 
-  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
 
-  [1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,1,1,1,0,0,1,0,1,1,1,1,0,1],
 
-  [1,0,1,0,0,0,0,1,0,1],
+  [1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1],
 
-  [1,0,1,0,1,2,1,1,0,1],
+  [1,0,1,0,1,1,1,0,1,0,1,0,0,1,0,1],
 
-  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,1],
 
-  [1,0,1,1,1,1,1,0,0,1],
+  [1,0,1,1,1,1,0,0,1,0,1,1,1,1,0,1],
 
-  [1,0,0,0,0,0,3,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
 
-  [1,0,0,0,0,0,4,0,0,1],
+  [1,0,1,1,1,0,1,1,1,1,1,1,1,0,0,1],
 
-  [1,1,1,1,1,1,1,1,1,1]
+  [1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1],
+
+  [1,0,1,1,1,1,1,1,1,1,1,0,0,0,0,1],
+
+  [1,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1],
+
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
 ];
 
@@ -752,9 +535,7 @@ const key = {
   x: 5.5,
   y: 5.5,
 
-  collected: false,
-
-  pickupDistance: 0.7
+  collected: false
 
 };
 
@@ -765,8 +546,8 @@ const key = {
 
 const door = {
 
-  x: 6,
-  y: 7,
+  x: 12.5,
+  y: 9.5,
 
   open: false
 
@@ -779,8 +560,8 @@ const door = {
 
 const exit = {
 
-  x: 6.5,
-  y: 8.5,
+  x: 12.5,
+  y: 11.5,
 
   active: false,
 
@@ -790,35 +571,77 @@ const exit = {
 
 
 /* =====================================================
-   ENEMY
+   ENEMIES
    ===================================================== */
 
-const enemy = {
+const enemies = [
 
-  x: 7.5,
-  y: 7.5,
+  {
+    x: 6.5,
+    y: 3.5,
+    startX: 6.5,
+    startY: 3.5,
+    health: 3,
+    maxHealth: 3,
+    alive: true,
+    hitTimer: 0,
+    attackTimer: 0,
+    speed: .55,
+    attackRange: 2.3
+  },
 
-  startX: 7.5,
-  startY: 7.5,
+  {
+    x: 11.5,
+    y: 5.5,
+    startX: 11.5,
+    startY: 5.5,
+    health: 3,
+    maxHealth: 3,
+    alive: true,
+    hitTimer: 0,
+    attackTimer: 0,
+    speed: .58,
+    attackRange: 2.3
+  },
 
-  alive: true,
+  {
+    x: 7.5,
+    y: 9.5,
+    startX: 7.5,
+    startY: 9.5,
+    health: 3,
+    maxHealth: 3,
+    alive: true,
+    hitTimer: 0,
+    attackTimer: 0,
+    speed: .62,
+    attackRange: 2.3
+  }
 
-  health: 3,
-  maxHealth: 3,
+];
 
-  hitTimer: 0,
 
-  attackTimer: 0,
+/* =====================================================
+   PICKUPS
+   ===================================================== */
 
-  attackCooldown: 1.2,
+const pickups = [
 
-  speed: 0.65,
+  {
+    type: "health",
+    x: 3.5,
+    y: 3.5,
+    active: true
+  },
 
-  attackRange: 2.5,
+  {
+    type: "ammo",
+    x: 10.5,
+    y: 7.5,
+    active: true
+  }
 
-  detectionRange: 8
-
-};
+];
 
 
 /* =====================================================
@@ -826,8 +649,6 @@ const enemy = {
    ===================================================== */
 
 const weapon = {
-
-  name: "PISTOL",
 
   magazineSize: 12,
 
@@ -837,7 +658,7 @@ const weapon = {
 
   damage: 1,
 
-  fireCooldown: 0.28,
+  fireCooldown: .28,
 
   fireTimer: 0,
 
@@ -855,7 +676,7 @@ const weapon = {
 
 
 /* =====================================================
-   GAME STATE
+   STATE
    ===================================================== */
 
 let paused = false;
@@ -873,10 +694,7 @@ const input = {
 
   moveX: 0,
   moveY: 0,
-
-  firing: false,
-
-  use: false
+  firing: false
 
 };
 
@@ -893,100 +711,86 @@ const knob =
 
 let joystickActive = false;
 
-
 joystick.addEventListener(
   "pointerdown",
-  event => {
+  e => {
 
-    event.preventDefault();
+    e.preventDefault();
 
     joystickActive = true;
 
     joystick.setPointerCapture(
-      event.pointerId
+      e.pointerId
     );
 
-    updateJoystick(event);
+    updateJoystick(e);
 
   }
 );
 
-
 joystick.addEventListener(
   "pointermove",
-  event => {
+  e => {
 
     if (!joystickActive)
       return;
 
-    event.preventDefault();
-
-    updateJoystick(event);
+    updateJoystick(e);
 
   }
 );
-
 
 joystick.addEventListener(
   "pointerup",
   resetJoystick
 );
 
-
 joystick.addEventListener(
   "pointercancel",
   resetJoystick
 );
 
-
-function updateJoystick(event) {
+function updateJoystick(e) {
 
   const rect =
     joystick.getBoundingClientRect();
 
-  const centreX =
+  const cx =
     rect.width / 2;
 
-  const centreY =
+  const cy =
     rect.height / 2;
 
   let x =
-    event.clientX -
+    e.clientX -
     rect.left -
-    centreX;
+    cx;
 
   let y =
-    event.clientY -
+    e.clientY -
     rect.top -
-    centreY;
+    cy;
 
   const max =
-    rect.width * 0.28;
+    rect.width * .28;
 
-  const distance =
+  const dist =
     Math.sqrt(
-      x * x +
-      y * y
+      x*x + y*y
     );
 
-  if (distance > max) {
+  if (dist > max) {
 
     x =
-      x / distance *
-      max;
+      x / dist * max;
 
     y =
-      y / distance *
-      max;
+      y / dist * max;
 
   }
 
   knob.style.transform =
-    "translate(" +
-    x +
-    "px," +
-    y +
-    "px)";
+    `translate(${x}px,${y}px)`;
 
   input.moveX =
     x / max;
@@ -995,7 +799,6 @@ function updateJoystick(event) {
     y / max;
 
 }
-
 
 function resetJoystick() {
 
@@ -1011,7 +814,7 @@ function resetJoystick() {
 
 
 /* =====================================================
-   TOUCH LOOK
+   LOOK
    ===================================================== */
 
 const lookZone =
@@ -1025,70 +828,53 @@ let targetLookVelocity = 0;
 
 let lookVelocity = 0;
 
-const LOOK_SENSITIVITY =
-  0.0025;
-
-const LOOK_SMOOTHING =
-  0.18;
-
-const LOOK_DEADZONE =
-  0.5;
-
+const LOOK_SENSITIVITY = .0025;
 
 lookZone.addEventListener(
   "pointerdown",
-  event => {
+  e => {
 
-    event.preventDefault();
+    e.preventDefault();
 
     lookActive = true;
 
     lookZone.setPointerCapture(
-      event.pointerId
+      e.pointerId
     );
 
     lastLookX =
-      event.clientX;
+      e.clientX;
 
     targetLookVelocity = 0;
-    lookVelocity = 0;
 
   }
 );
 
-
 lookZone.addEventListener(
   "pointermove",
-  event => {
+  e => {
 
     if (!lookActive)
       return;
 
-    event.preventDefault();
-
-    const deltaX =
-      event.clientX -
+    const dx =
+      e.clientX -
       lastLookX;
 
     lastLookX =
-      event.clientX;
+      e.clientX;
 
     if (
-      Math.abs(deltaX) <
-      LOOK_DEADZONE
-    ) {
-
+      Math.abs(dx) < .5
+    )
       return;
 
-    }
-
     targetLookVelocity =
-      deltaX *
+      dx *
       LOOK_SENSITIVITY;
 
   }
 );
-
 
 lookZone.addEventListener(
   "pointerup",
@@ -1100,7 +886,6 @@ lookZone.addEventListener(
 
   }
 );
-
 
 lookZone.addEventListener(
   "pointercancel",
@@ -1118,95 +903,63 @@ lookZone.addEventListener(
    COLLISION
    ===================================================== */
 
-function isWall(
-  x,
-  y
-) {
+function isWall(x,y) {
 
-  const mapX =
+  const mx =
     Math.floor(x);
 
-  const mapY =
+  const my =
     Math.floor(y);
 
-
   if (
-    mapY < 0 ||
-    mapY >= map.length ||
-    mapX < 0 ||
-    mapX >= map[0].length
-  ) {
-
+    my < 0 ||
+    my >= map.length ||
+    mx < 0 ||
+    mx >= map[0].length
+  )
     return true;
-
-  }
-
 
   const tile =
-    map[mapY][mapX];
-
+    map[my][mx];
 
   if (
-    tile === 1 ||
-    tile === 2
-  ) {
-
+    tile === 1
+  )
     return true;
-
-  }
-
 
   if (
     tile === 3 &&
     !door.open
-  ) {
-
+  )
     return true;
-
-  }
-
 
   return false;
 
 }
 
+function movePlayer(dx,dy) {
 
-function movePlayer(
-  dx,
-  dy
-) {
-
-  const newX =
+  const nx =
     player.x + dx;
 
-  const newY =
+  const ny =
     player.y + dy;
-
 
   if (
     !isWall(
-      newX,
+      nx,
       player.y
     )
-  ) {
-
-    player.x =
-      newX;
-
-  }
-
+  )
+    player.x = nx;
 
   if (
     !isWall(
       player.x,
-      newY
+      ny
     )
-  ) {
-
-    player.y =
-      newY;
-
-  }
+  )
+    player.y = ny;
 
 }
 
@@ -1216,21 +969,12 @@ function movePlayer(
    ===================================================== */
 
 function distanceBetween(
-  x1,
-  y1,
-  x2,
-  y2
+  x1,y1,x2,y2
 ) {
 
-  const dx =
-    x2 - x1;
-
-  const dy =
-    y2 - y1;
-
   return Math.sqrt(
-    dx * dx +
-    dy * dy
+    (x2-x1)**2 +
+    (y2-y1)**2
   );
 
 }
@@ -1242,8 +986,7 @@ function distanceBetween(
 
 let audioContext = null;
 
-
-function getAudioContext() {
+function audio() {
 
   if (!audioContext) {
 
@@ -1255,172 +998,119 @@ function getAudioContext() {
 
   }
 
-
   if (
     audioContext.state ===
     "suspended"
-  ) {
-
+  )
     audioContext.resume();
-
-  }
-
 
   return audioContext;
 
 }
 
-
-function playTone(
+function tone(
   frequency,
   duration,
-  type = "square",
-  volume = 0.05
+  type="square",
+  volume=.05
 ) {
 
-  const audio =
-    getAudioContext();
+  const a =
+    audio();
 
-  const oscillator =
-    audio.createOscillator();
+  const osc =
+    a.createOscillator();
 
   const gain =
-    audio.createGain();
+    a.createGain();
 
-
-  oscillator.type =
+  osc.type =
     type;
 
-  oscillator.frequency.value =
+  osc.frequency.value =
     frequency;
-
 
   gain.gain.setValueAtTime(
     volume,
-    audio.currentTime
+    a.currentTime
   );
-
 
   gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    audio.currentTime +
+    .001,
+    a.currentTime +
     duration
   );
 
-
-  oscillator.connect(gain);
+  osc.connect(gain);
 
   gain.connect(
-    audio.destination
+    a.destination
   );
 
+  osc.start();
 
-  oscillator.start();
-
-  oscillator.stop(
-    audio.currentTime +
+  osc.stop(
+    a.currentTime +
     duration
   );
 
 }
 
+function gunSound() {
 
-function playGunSound() {
-
-  playTone(
+  tone(
     130,
-    0.09,
+    .09,
     "sawtooth",
-    0.16
+    .15
   );
 
 }
 
+function pickupSound() {
 
-function playReloadSound() {
-
-  playTone(
-    220,
-    0.12,
+  tone(
+    600,
+    .1,
     "square",
-    0.05
-  );
-
-}
-
-
-function playKeySound() {
-
-  playTone(
-    660,
-    0.12,
-    "square",
-    0.06
+    .06
   );
 
   setTimeout(
-    () => {
-
-      playTone(
-        880,
-        0.18,
+    () =>
+      tone(
+        900,
+        .15,
         "square",
-        0.06
-      );
-
-    },
-    100
+        .06
+      ),
+    90
   );
 
 }
 
+function doorSound() {
 
-function playDoorSound() {
-
-  playTone(
-    90,
-    0.35,
+  tone(
+    80,
+    .35,
     "sawtooth",
-    0.08
+    .08
   );
 
 }
 
+function completeSound() {
 
-function playCompleteSound() {
-
-  playTone(
-    523,
-    0.12,
-    "square",
-    0.06
-  );
+  tone(523,.12);
 
   setTimeout(
-    () => {
-
-      playTone(
-        659,
-        0.12,
-        "square",
-        0.06
-      );
-
-    },
+    () => tone(659,.12),
     120
   );
 
   setTimeout(
-    () => {
-
-      playTone(
-        784,
-        0.25,
-        "square",
-        0.06
-      );
-
-    },
+    () => tone(784,.25),
     240
   );
 
@@ -1431,46 +1121,42 @@ function playCompleteSound() {
    HUD
    ===================================================== */
 
-const ammoDisplay =
-  document.getElementById("ammo");
-
 const healthDisplay =
   document.getElementById("health");
 
+const ammoDisplay =
+  document.getElementById("ammo");
+
 const keyStatus =
-  document.getElementById(
-    "key-status"
-  );
+  document.getElementById("key-status");
 
 const objective =
-  document.getElementById(
-    "objective"
-  );
+  document.getElementById("objective");
 
 const message =
-  document.getElementById(
-    "message"
-  );
+  document.getElementById("message");
 
 const reloadMessage =
   document.getElementById(
     "reload-message"
   );
 
+function updateHUD() {
 
-function updateAmmoDisplay() {
+  healthDisplay.textContent =
+    player.health;
 
   ammoDisplay.textContent =
-    weapon.ammo +
-    " / " +
-    weapon.reserveAmmo;
+    `${weapon.ammo} / ${weapon.reserveAmmo}`;
+
+  keyStatus.textContent =
+    key.collected
+      ? "YES"
+      : "NO";
 
 }
 
-
-function showMessage(
-  text
-) {
+function showMessage(text) {
 
   message.textContent =
     text;
@@ -1478,16 +1164,17 @@ function showMessage(
   message.style.opacity =
     "1";
 
-
-  setTimeout(
-    () => {
-
-      message.style.opacity =
-        "0";
-
-    },
-    1600
+  clearTimeout(
+    showMessage.timer
   );
+
+  showMessage.timer =
+    setTimeout(
+      () =>
+        message.style.opacity =
+          "0",
+      1400
+    );
 
 }
 
@@ -1496,75 +1183,62 @@ function showMessage(
    FIRE
    ===================================================== */
 
-const fireButton =
+const fire =
   document.getElementById("fire");
 
-
-fireButton.addEventListener(
+fire.addEventListener(
   "pointerdown",
-  event => {
+  e => {
 
-    event.preventDefault();
-
-    fireButton.classList.add(
-      "active"
-    );
+    e.preventDefault();
 
     input.firing = true;
+
+    fire.classList.add(
+      "active"
+    );
 
     fireWeapon();
 
   }
 );
 
-
-fireButton.addEventListener(
+fire.addEventListener(
   "pointerup",
   () => {
 
     input.firing = false;
 
-    fireButton.classList.remove(
+    fire.classList.remove(
       "active"
     );
 
   }
 );
 
-
-fireButton.addEventListener(
+fire.addEventListener(
   "pointercancel",
   () => {
 
     input.firing = false;
 
-    fireButton.classList.remove(
+    fire.classList.remove(
       "active"
     );
 
   }
 );
 
-
 function fireWeapon() {
 
-  if (gameOver)
-    return;
-
-  if (missionComplete)
-    return;
-
-  if (paused)
-    return;
-
-  if (weapon.reloading)
-    return;
-
   if (
+    gameOver ||
+    missionComplete ||
+    paused ||
+    weapon.reloading ||
     weapon.fireTimer > 0
   )
     return;
-
 
   if (
     weapon.ammo <= 0
@@ -1576,122 +1250,126 @@ function fireWeapon() {
 
   }
 
-
   weapon.ammo--;
 
   weapon.fireTimer =
     weapon.fireCooldown;
 
   weapon.recoil =
-    0.09;
+    .09;
 
   weapon.muzzleFlash =
-    0.08;
+    .08;
+
+  gunSound();
+
+  updateHUD();
 
 
-  updateAmmoDisplay();
+  let closestEnemy = null;
 
-  playGunSound();
-
-
-  if (!enemy.alive)
-    return;
+  let closestDistance = Infinity;
 
 
-  const dx =
-    enemy.x -
-    player.x;
-
-  const dy =
-    enemy.y -
-    player.y;
-
-
-  const distance =
-    Math.sqrt(
-      dx * dx +
-      dy * dy
-    );
-
-
-  const enemyAngle =
-    Math.atan2(
-      dy,
-      dx
-    );
-
-
-  const wallDistance =
-    castRay(
-      enemyAngle
-    );
-
-
-  if (
-    wallDistance <
-    distance
+  for (
+    const enemy of enemies
   ) {
 
-    return;
-
-  }
-
-
-  let difference =
-    enemyAngle -
-    player.angle;
+    if (!enemy.alive)
+      continue;
 
 
-  while (
-    difference >
-    Math.PI
-  ) {
+    const dx =
+      enemy.x -
+      player.x;
 
-    difference -=
-      Math.PI * 2;
+    const dy =
+      enemy.y -
+      player.y;
 
-  }
+    const distance =
+      Math.sqrt(
+        dx*dx + dy*dy
+      );
 
-
-  while (
-    difference <
-    -Math.PI
-  ) {
-
-    difference +=
-      Math.PI * 2;
-
-  }
+    if (
+      distance >=
+      closestDistance
+    )
+      continue;
 
 
-  if (
-    Math.abs(difference) <
-    0.14 &&
-    distance < 12
-  ) {
+    const enemyAngle =
+      Math.atan2(
+        dy,
+        dx
+      );
 
-    enemy.health -=
-      weapon.damage;
+    const wallDistance =
+      castRay(
+        enemyAngle
+      );
 
-    enemy.hitTimer =
-      0.16;
+    if (
+      wallDistance <
+      distance
+    )
+      continue;
+
+
+    let difference =
+      enemyAngle -
+      player.angle;
+
+    while (
+      difference > Math.PI
+    )
+      difference -=
+        Math.PI*2;
+
+    while (
+      difference < -Math.PI
+    )
+      difference +=
+        Math.PI*2;
 
 
     if (
-      enemy.health <= 0
+      Math.abs(difference)
+      < .14 &&
+      distance < 12
     ) {
 
-      enemy.health =
-        0;
+      closestEnemy =
+        enemy;
 
-      enemy.alive =
+      closestDistance =
+        distance;
+
+    }
+
+  }
+
+
+  if (closestEnemy) {
+
+    closestEnemy.health--;
+
+    closestEnemy.hitTimer =
+      .16;
+
+    if (
+      closestEnemy.health <= 0
+    ) {
+
+      closestEnemy.health = 0;
+
+      closestEnemy.alive =
         false;
 
       showMessage(
         "ENEMY DOWN"
       );
-
-      updateObjective();
 
     }
 
@@ -1704,49 +1382,28 @@ function fireWeapon() {
    RELOAD
    ===================================================== */
 
-const reloadButton =
-  document.getElementById(
-    "reload"
+document
+  .getElementById("reload")
+  .addEventListener(
+    "pointerdown",
+    e => {
+
+      e.preventDefault();
+
+      reloadWeapon();
+
+    }
   );
-
-
-reloadButton.addEventListener(
-  "pointerdown",
-  event => {
-
-    event.preventDefault();
-
-    reloadWeapon();
-
-  }
-);
-
 
 function reloadWeapon() {
 
-  if (gameOver)
-    return;
-
-  if (missionComplete)
-    return;
-
-  if (paused)
-    return;
-
-  if (weapon.reloading)
-    return;
-
   if (
+    weapon.reloading ||
     weapon.ammo >=
-    weapon.magazineSize
-  )
-    return;
-
-  if (
+      weapon.magazineSize ||
     weapon.reserveAmmo <= 0
   )
     return;
-
 
   weapon.reloading =
     true;
@@ -1754,42 +1411,35 @@ function reloadWeapon() {
   weapon.reloadTimer =
     weapon.reloadTime;
 
-
   reloadMessage.style.opacity =
     "1";
-
-
-  playReloadSound();
 
 }
 
 
 /* =====================================================
-   USE BUTTON
+   USE
    ===================================================== */
 
-const useButton =
-  document.getElementById("use");
+document
+  .getElementById("use")
+  .addEventListener(
+    "pointerdown",
+    e => {
 
+      e.preventDefault();
 
-useButton.addEventListener(
-  "pointerdown",
-  event => {
+      useAction();
 
-    event.preventDefault();
-
-    useAction();
-
-  }
-);
-
+    }
+  );
 
 function useAction() {
 
-  if (gameOver)
-    return;
-
-  if (missionComplete)
+  if (
+    gameOver ||
+    missionComplete
+  )
     return;
 
 
@@ -1804,11 +1454,19 @@ function useAction() {
       player.y,
       key.x,
       key.y
-    ) <
-    1.0
+    ) < 1.1
   ) {
 
-    collectKey();
+    key.collected =
+      true;
+
+    pickupSound();
+
+    showMessage(
+      "KEY ACQUIRED"
+    );
+
+    updateObjective();
 
     return;
 
@@ -1819,25 +1477,30 @@ function useAction() {
     DOOR
   */
 
-  const doorDistance =
+  if (
+    !door.open &&
     distanceBetween(
       player.x,
       player.y,
-      door.x + 0.5,
-      door.y + 0.5
-    );
-
-
-  if (
-    doorDistance < 1.5 &&
-    !door.open
+      door.x,
+      door.y
+    ) < 1.6
   ) {
 
     if (
       key.collected
     ) {
 
-      openDoor();
+      door.open =
+        true;
+
+      doorSound();
+
+      showMessage(
+        "DOOR UNLOCKED"
+      );
+
+      updateObjective();
 
     }
 
@@ -1858,34 +1521,17 @@ function useAction() {
     EXIT
   */
 
-  const exitDistance =
+  if (
+    exit.active &&
     distanceBetween(
       player.x,
       player.y,
       exit.x,
       exit.y
-    );
-
-
-  if (
-    exitDistance < 1.3
+    ) < 1.3
   ) {
 
-    if (
-      exit.active
-    ) {
-
-      completeMission();
-
-    }
-
-    else {
-
-      showMessage(
-        "EXIT LOCKED"
-      );
-
-    }
+    completeMission();
 
   }
 
@@ -1893,61 +1539,73 @@ function useAction() {
 
 
 /* =====================================================
-   KEY
+   PICKUPS
    ===================================================== */
 
-function collectKey() {
+function updatePickups() {
 
-  if (
-    key.collected
-  )
-    return;
+  for (
+    const pickup of pickups
+  ) {
 
-
-  key.collected =
-    true;
-
-
-  keyStatus.textContent =
-    "YES";
+    if (
+      !pickup.active
+    )
+      continue;
 
 
-  playKeySound();
+    if (
+      distanceBetween(
+        player.x,
+        player.y,
+        pickup.x,
+        pickup.y
+      ) < .65
+    ) {
 
-  showMessage(
-    "KEY ACQUIRED"
-  );
+      pickup.active =
+        false;
 
-
-  updateObjective();
-
-}
-
-
-/* =====================================================
-   DOOR
-   ===================================================== */
-
-function openDoor() {
-
-  if (
-    door.open
-  )
-    return;
+      pickupSound();
 
 
-  door.open =
-    true;
+      if (
+        pickup.type ===
+        "health"
+      ) {
+
+        player.health =
+          Math.min(
+            100,
+            player.health + 25
+          );
+
+        showMessage(
+          "HEALTH +25"
+        );
+
+      }
 
 
-  playDoorSound();
+      if (
+        pickup.type ===
+        "ammo"
+      ) {
 
-  showMessage(
-    "DOOR UNLOCKED"
-  );
+        weapon.reserveAmmo +=
+          24;
 
+        showMessage(
+          "AMMO +24"
+        );
 
-  updateObjective();
+      }
+
+      updateHUD();
+
+    }
+
+  }
 
 }
 
@@ -1969,7 +1627,6 @@ function updateObjective() {
 
   }
 
-
   if (
     !key.collected
   ) {
@@ -1980,7 +1637,6 @@ function updateObjective() {
     return;
 
   }
-
 
   if (
     !door.open
@@ -1993,10 +1649,8 @@ function updateObjective() {
 
   }
 
-
   exit.active =
     true;
-
 
   objective.textContent =
     "REACH THE EXIT";
@@ -2008,54 +1662,12 @@ function updateObjective() {
    EXIT
    ===================================================== */
 
-function checkExit() {
-
-  if (
-    !exit.active ||
-    exit.triggered
-  )
-    return;
-
-
-  const distance =
-    distanceBetween(
-      player.x,
-      player.y,
-      exit.x,
-      exit.y
-    );
-
-
-  if (
-    distance < 1.1
-  ) {
-
-    exit.triggered =
-      true;
-
-    showMessage(
-      "PRESS USE TO ESCAPE"
-    );
-
-  }
-
-}
-
-
 function completeMission() {
-
-  if (
-    missionComplete
-  )
-    return;
-
 
   missionComplete =
     true;
 
-
-  playCompleteSound();
-
+  completeSound();
 
   document
     .getElementById(
@@ -2069,101 +1681,122 @@ function completeMission() {
 
 
 /* =====================================================
-   ENEMY LINE OF SIGHT
+   RAYCAST
    ===================================================== */
 
-function castRayFromEnemy(
-  angle
-) {
+function castRay(angle) {
 
   const step =
-    0.025;
+    .025;
 
   let distance =
     0;
 
-
   while (
-    distance < 20
+    distance < 25
   ) {
 
     distance +=
       step;
 
-
     const x =
-      enemy.x +
+      player.x +
       Math.cos(angle) *
       distance;
 
-
     const y =
-      enemy.y +
+      player.y +
       Math.sin(angle) *
       distance;
-
 
     if (
       isWall(
         x,
         y
       )
-    ) {
-
+    )
       return distance;
-
-    }
 
   }
 
-
-  return 20;
+  return 25;
 
 }
 
 
 /* =====================================================
-   ENEMY AI
+   ENEMY LINE OF SIGHT
    ===================================================== */
 
-function updateEnemy(
-  delta
+function enemyRay(
+  enemy,
+  angle
 ) {
 
-  if (!enemy.alive)
-    return;
+  const step =
+    .025;
 
+  let distance =
+    0;
 
-  enemy.attackTimer -=
-    delta;
-
-  enemy.hitTimer -=
-    delta;
-
-
-  const distance =
-    distanceBetween(
-      enemy.x,
-      enemy.y,
-      player.x,
-      player.y
-    );
-
-
-  if (
-    distance >=
-    enemy.detectionRange
+  while (
+    distance < 25
   ) {
 
-    return;
+    distance +=
+      step;
+
+    const x =
+      enemy.x +
+      Math.cos(angle) *
+      distance;
+
+    const y =
+      enemy.y +
+      Math.sin(angle) *
+      distance;
+
+    if (
+      isWall(
+        x,
+        y
+      )
+    )
+      return distance;
 
   }
 
+  return 25;
 
-  if (
-    distance >
-    enemy.attackRange
+}
+
+
+/* =====================================================
+   ENEMY UPDATE
+   ===================================================== */
+
+function updateEnemies(
+  delta
+) {
+
+  for (
+    const enemy of enemies
   ) {
+
+    if (!enemy.alive)
+      continue;
+
+
+    enemy.hitTimer =
+      Math.max(
+        0,
+        enemy.hitTimer -
+        delta
+      );
+
+    enemy.attackTimer -=
+      delta;
+
 
     const dx =
       player.x -
@@ -2173,70 +1806,75 @@ function updateEnemy(
       player.y -
       enemy.y;
 
-
-    const length =
+    const distance =
       Math.sqrt(
-        dx * dx +
-        dy * dy
+        dx*dx +
+        dy*dy
       );
 
 
     if (
-      length > 0
+      distance >
+      9
+    )
+      continue;
+
+
+    if (
+      distance >
+      enemy.attackRange
     ) {
 
+      const length =
+        Math.sqrt(
+          dx*dx +
+          dy*dy
+        );
+
       const moveX =
-        dx /
-        length *
+        dx / length *
         enemy.speed *
         delta;
 
       const moveY =
-        dy /
-        length *
+        dy / length *
         enemy.speed *
         delta;
 
 
       moveEnemy(
+        enemy,
         moveX,
         moveY
       );
 
     }
 
-  }
+    else {
 
-  else {
+      const angle =
+        Math.atan2(
+          dy,
+          dx
+        );
 
-    const enemyAngle =
-      Math.atan2(
-        player.y -
-        enemy.y,
-        player.x -
-        enemy.x
-      );
+      const visible =
+        enemyRay(
+          enemy,
+          angle
+        ) >=
+        distance;
 
-
-    const wallDistance =
-      castRayFromEnemy(
-        enemyAngle
-      );
-
-
-    if (
-      wallDistance >=
-      distance
-    ) {
 
       if (
+        visible &&
         enemy.attackTimer <= 0
       ) {
 
         damagePlayer();
 
         enemy.attackTimer =
-          enemy.attackCooldown;
+          1.2;
 
       }
 
@@ -2247,31 +1885,28 @@ function updateEnemy(
 }
 
 
-/* =====================================================
-   ENEMY MOVEMENT
-   ===================================================== */
-
 function moveEnemy(
+  enemy,
   dx,
   dy
 ) {
 
-  const newX =
+  const nx =
     enemy.x + dx;
 
-  const newY =
+  const ny =
     enemy.y + dy;
 
 
   if (
     !isWall(
-      newX,
+      nx,
       enemy.y
     )
   ) {
 
     enemy.x =
-      newX;
+      nx;
 
   }
 
@@ -2279,12 +1914,12 @@ function moveEnemy(
   if (
     !isWall(
       enemy.x,
-      newY
+      ny
     )
   ) {
 
     enemy.y =
-      newY;
+      ny;
 
   }
 
@@ -2292,7 +1927,7 @@ function moveEnemy(
 
 
 /* =====================================================
-   PLAYER DAMAGE
+   DAMAGE
    ===================================================== */
 
 function damagePlayer() {
@@ -2300,140 +1935,49 @@ function damagePlayer() {
   if (gameOver)
     return;
 
-
   player.health -=
     10;
 
+  player.health =
+    Math.max(
+      0,
+      player.health
+    );
 
-  if (
-    player.health < 0
-  ) {
-
-    player.health =
-      0;
-
-  }
-
-
-  healthDisplay.textContent =
-    player.health;
-
-
-  flashDamage();
-
-
-  if (
-    player.health <= 0
-  ) {
-
-    killPlayer();
-
-  }
-
-}
-
-
-function flashDamage() {
+  updateHUD();
 
   const flash =
     document.getElementById(
       "damage-flash"
     );
 
-
   flash.style.opacity =
     "1";
 
-
   setTimeout(
-    () => {
-
+    () =>
       flash.style.opacity =
-        "0";
-
-    },
+        "0",
     100
   );
 
-}
 
-
-function killPlayer() {
-
-  gameOver =
-    true;
-
-
-  input.moveX = 0;
-  input.moveY = 0;
-  input.firing = false;
-
-
-  document
-    .getElementById(
-      "death-screen"
-    )
-    .classList.add(
-      "visible"
-    );
-
-}
-
-
-/* =====================================================
-   RAYCASTING
-   ===================================================== */
-
-const FOV =
-  Math.PI / 3;
-
-
-function castRay(
-  angle
-) {
-
-  const step =
-    0.025;
-
-  let distance =
-    0;
-
-
-  while (
-    distance < 20
+  if (
+    player.health <= 0
   ) {
 
-    distance +=
-      step;
+    gameOver =
+      true;
 
-
-    const x =
-      player.x +
-      Math.cos(angle) *
-      distance;
-
-
-    const y =
-      player.y +
-      Math.sin(angle) *
-      distance;
-
-
-    if (
-      isWall(
-        x,
-        y
+    document
+      .getElementById(
+        "death-screen"
       )
-    ) {
-
-      return distance;
-
-    }
+      .classList.add(
+        "visible"
+      );
 
   }
-
-
-  return 20;
 
 }
 
@@ -2441,6 +1985,9 @@ function castRay(
 /* =====================================================
    RENDER
    ===================================================== */
+
+const FOV =
+  Math.PI / 3;
 
 function render() {
 
@@ -2452,11 +1999,11 @@ function render() {
 
 
   /*
-    Sky.
+    SKY
   */
 
   ctx.fillStyle =
-    "#161616";
+    "#101820";
 
   ctx.fillRect(
     0,
@@ -2467,11 +2014,11 @@ function render() {
 
 
   /*
-    Floor.
+    FLOOR
   */
 
   ctx.fillStyle =
-    "#3b3028";
+    "#342a23";
 
   ctx.fillRect(
     0,
@@ -2482,7 +2029,7 @@ function render() {
 
 
   /*
-    Walls.
+    WALLS
   */
 
   for (
@@ -2493,20 +2040,17 @@ function render() {
 
     const cameraX =
       x / width -
-      0.5;
-
+      .5;
 
     const rayAngle =
       player.angle +
       cameraX *
       FOV;
 
-
     let distance =
       castRay(
         rayAngle
       );
-
 
     distance *=
       Math.cos(
@@ -2522,7 +2066,6 @@ function render() {
         distance
       );
 
-
     const top =
       (
         height -
@@ -2530,82 +2073,259 @@ function render() {
       ) / 2;
 
 
-    const brightness =
-      Math.max(
-        25,
-        190 -
-        distance * 18
+    /*
+      Work out what we hit.
+    */
+
+    const hitX =
+      player.x +
+      Math.cos(rayAngle) *
+      distance;
+
+    const hitY =
+      player.y +
+      Math.sin(rayAngle) *
+      distance;
+
+    const tileX =
+      Math.floor(hitX);
+
+    const tileY =
+      Math.floor(hitY);
+
+    const tile =
+      map[tileY]?.[tileX];
+
+
+    /*
+      DOOR
+
+      This is the important bit.
+      Doors are now visually different
+      from ordinary walls.
+    */
+
+    if (
+      tile === 3 &&
+      !door.open
+    ) {
+
+      const shade =
+        Math.max(
+          35,
+          150 -
+          distance * 12
+        );
+
+      ctx.fillStyle =
+        `rgb(${shade},
+             ${Math.floor(shade*.35)},
+             ${Math.floor(shade*.12)})`;
+
+      ctx.fillRect(
+        x,
+        top,
+        1,
+        wallHeight
       );
 
 
-    ctx.fillStyle =
-      "rgb(" +
-      brightness +
-      "," +
-      Math.floor(
-        brightness * 0.72
-      ) +
-      "," +
-      Math.floor(
-        brightness * 0.52
-      ) +
-      ")";
+      /*
+        Door panel lines.
+      */
 
+      if (
+        x % 6 === 0
+      ) {
 
-    ctx.fillRect(
-      x,
-      top,
-      1,
-      wallHeight
-    );
+        ctx.fillStyle =
+          "rgba(255,220,120,.35)";
+
+        ctx.fillRect(
+          x,
+          top,
+          1,
+          wallHeight
+        );
+
+      }
+
+    }
+
+    else {
+
+      const brightness =
+        Math.max(
+          25,
+          185 -
+          distance * 18
+        );
+
+      ctx.fillStyle =
+        `rgb(${brightness},
+             ${Math.floor(
+               brightness*.72
+             )},
+             ${Math.floor(
+               brightness*.52
+             )})`;
+
+      ctx.fillRect(
+        x,
+        top,
+        1,
+        wallHeight
+      );
+
+    }
 
   }
 
 
   /*
-    Key.
+    PICKUPS
+  */
+
+  for (
+    const pickup of pickups
+  ) {
+
+    if (
+      pickup.active
+    )
+      renderPickup(
+        pickup
+      );
+
+  }
+
+
+  /*
+    KEY
   */
 
   if (
     !key.collected
-  ) {
-
+  )
     renderKey();
-
-  }
 
 
   /*
-    Exit marker.
+    EXIT
   */
 
   if (
     exit.active
-  ) {
-
+  )
     renderExit();
 
-  }
-
 
   /*
-    Enemy.
+    ENEMIES
   */
 
-  if (
-    enemy.alive
+  for (
+    const enemy of enemies
   ) {
 
-    renderEnemy();
+    if (
+      enemy.alive
+    )
+      renderEnemy(
+        enemy
+      );
 
   }
 
 
   /*
-    Weapon.
+    WEAPON
   */
 
   renderWeapon();
+
+}
+
+
+/* =====================================================
+   SPRITE POSITION
+   ===================================================== */
+
+function spritePosition(
+  x,
+  y
+) {
+
+  const dx =
+    x -
+    player.x;
+
+  const dy =
+    y -
+    player.y;
+
+  const distance =
+    Math.sqrt(
+      dx*dx +
+      dy*dy
+    );
+
+  const angle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+
+  let relative =
+    angle -
+    player.angle;
+
+
+  while (
+    relative > Math.PI
+  )
+    relative -=
+      Math.PI*2;
+
+
+  while (
+    relative < -Math.PI
+  )
+    relative +=
+      Math.PI*2;
+
+
+  if (
+    Math.abs(relative) >
+    FOV/2
+  )
+    return null;
+
+
+  const wallDistance =
+    castRay(angle);
+
+
+  if (
+    wallDistance <
+    distance
+  )
+    return null;
+
+
+  const screenX =
+    canvas.width/2 +
+    (
+      relative / FOV
+    ) *
+    canvas.width;
+
+
+  return {
+    distance,
+    screenX
+  };
 
 }
 
@@ -2616,148 +2336,165 @@ function render() {
 
 function renderKey() {
 
-  const dx =
-    key.x -
-    player.x;
-
-  const dy =
-    key.y -
-    player.y;
-
-
-  const distance =
-    Math.sqrt(
-      dx * dx +
-      dy * dy
+  const p =
+    spritePosition(
+      key.x,
+      key.y
     );
 
-
-  const keyAngle =
-    Math.atan2(
-      dy,
-      dx
-    );
-
-
-  const wallDistance =
-    castRay(
-      keyAngle
-    );
-
-
-  if (
-    wallDistance <
-    distance
-  ) {
-
+  if (!p)
     return;
-
-  }
-
-
-  let angle =
-    keyAngle -
-    player.angle;
-
-
-  while (
-    angle >
-    Math.PI
-  ) {
-
-    angle -=
-      Math.PI * 2;
-
-  }
-
-
-  while (
-    angle <
-    -Math.PI
-  ) {
-
-    angle +=
-      Math.PI * 2;
-
-  }
-
-
-  if (
-    Math.abs(angle) >
-    FOV / 2
-  ) {
-
-    return;
-
-  }
-
-
-  const screenX =
-    canvas.width / 2 +
-    (
-      angle / FOV
-    ) *
-    canvas.width;
 
 
   const size =
     Math.max(
-      6,
+      5,
       Math.min(
-        30,
+        35,
         canvas.height /
-        distance *
-        0.15
+        p.distance *
+        .18
       )
     );
 
 
-  const screenY =
-    canvas.height / 2;
+  const y =
+    canvas.height/2;
 
-
-  /*
-    Key head.
-  */
 
   ctx.fillStyle =
-    "#ffd83d";
+    "#ffd52f";
 
   ctx.fillRect(
-    screenX -
-    size * 0.35,
-    screenY -
-    size * 0.45,
-    size * 0.7,
-    size * 0.25
+    p.screenX -
+    size*.35,
+    y -
+    size*.45,
+    size*.7,
+    size*.25
   );
-
-
-  /*
-    Key shaft.
-  */
 
   ctx.fillRect(
-    screenX -
-    size * 0.05,
-    screenY -
-    size * 0.2,
-    size * 0.1,
-    size * 0.65
+    p.screenX -
+    size*.05,
+    y -
+    size*.2,
+    size*.1,
+    size*.65
   );
-
-
-  /*
-    Key teeth.
-  */
 
   ctx.fillRect(
-    screenX,
-    screenY +
-    size * 0.25,
-    size * 0.18,
-    size * 0.18
+    p.screenX,
+    y +
+    size*.25,
+    size*.2,
+    size*.18
   );
+
+}
+
+
+/* =====================================================
+   PICKUP RENDER
+   ===================================================== */
+
+function renderPickup(
+  pickup
+) {
+
+  const p =
+    spritePosition(
+      pickup.x,
+      pickup.y
+    );
+
+  if (!p)
+    return;
+
+
+  const size =
+    Math.max(
+      8,
+      Math.min(
+        42,
+        canvas.height /
+        p.distance *
+        .3
+      )
+    );
+
+
+  const y =
+    canvas.height/2;
+
+
+  if (
+    pickup.type ===
+    "health"
+  ) {
+
+    ctx.fillStyle =
+      "#e22";
+
+    ctx.fillRect(
+      p.screenX -
+      size/2,
+      y -
+      size/2,
+      size,
+      size
+    );
+
+    ctx.fillStyle =
+      "#fff";
+
+    ctx.fillRect(
+      p.screenX -
+      size*.12,
+      y -
+      size*.35,
+      size*.24,
+      size*.7
+    );
+
+    ctx.fillRect(
+      p.screenX -
+      size*.35,
+      y -
+      size*.12,
+      size*.7,
+      size*.24
+    );
+
+  }
+
+  else {
+
+    ctx.fillStyle =
+      "#e5c83d";
+
+    ctx.fillRect(
+      p.screenX -
+      size*.4,
+      y -
+      size*.25,
+      size*.8,
+      size*.5
+    );
+
+    ctx.fillStyle =
+      "#222";
+
+    ctx.fillRect(
+      p.screenX -
+      size*.28,
+      y -
+      size*.12,
+      size*.56,
+      size*.24
+    );
+
+  }
 
 }
 
@@ -2768,133 +2505,45 @@ function renderKey() {
 
 function renderExit() {
 
-  const dx =
-    exit.x -
-    player.x;
-
-  const dy =
-    exit.y -
-    player.y;
-
-
-  const distance =
-    Math.sqrt(
-      dx * dx +
-      dy * dy
+  const p =
+    spritePosition(
+      exit.x,
+      exit.y
     );
 
-
-  const exitAngle =
-    Math.atan2(
-      dy,
-      dx
-    );
-
-
-  const wallDistance =
-    castRay(
-      exitAngle
-    );
-
-
-  if (
-    wallDistance <
-    distance
-  ) {
-
+  if (!p)
     return;
-
-  }
-
-
-  let angle =
-    exitAngle -
-    player.angle;
-
-
-  while (
-    angle >
-    Math.PI
-  ) {
-
-    angle -=
-      Math.PI * 2;
-
-  }
-
-
-  while (
-    angle <
-    -Math.PI
-  ) {
-
-    angle +=
-      Math.PI * 2;
-
-  }
-
-
-  if (
-    Math.abs(angle) >
-    FOV / 2
-  ) {
-
-    return;
-
-  }
-
-
-  const screenX =
-    canvas.width / 2 +
-    (
-      angle / FOV
-    ) *
-    canvas.width;
 
 
   const size =
     Math.max(
-      12,
+      15,
       Math.min(
-        60,
+        70,
         canvas.height /
-        distance *
-        0.45
+        p.distance *
+        .45
       )
     );
 
 
-  const screenY =
-    canvas.height / 2;
+  const y =
+    canvas.height/2;
 
 
   ctx.strokeStyle =
-    "#44ff66";
+    "#45ff55";
 
   ctx.lineWidth =
     3;
 
-
   ctx.strokeRect(
-    screenX -
-    size / 2,
-    screenY -
+    p.screenX -
+    size/2,
+    y -
     size,
     size,
-    size * 1.8
-  );
-
-
-  ctx.fillStyle =
-    "rgba(40,255,80,0.18)";
-
-  ctx.fillRect(
-    screenX -
-    size / 2,
-    screenY -
-    size,
-    size,
-    size * 1.8
+    size*1.8
   );
 
 }
@@ -2904,168 +2553,61 @@ function renderExit() {
    ENEMY RENDER
    ===================================================== */
 
-function renderEnemy() {
+function renderEnemy(
+  enemy
+) {
 
-  const dx =
-    enemy.x -
-    player.x;
-
-  const dy =
-    enemy.y -
-    player.y;
-
-
-  const distance =
-    Math.sqrt(
-      dx * dx +
-      dy * dy
+  const p =
+    spritePosition(
+      enemy.x,
+      enemy.y
     );
 
-
-  const enemyAngle =
-    Math.atan2(
-      dy,
-      dx
-    );
-
-
-  const wallDistance =
-    castRay(
-      enemyAngle
-    );
-
-
-  if (
-    wallDistance <
-    distance
-  ) {
-
+  if (!p)
     return;
-
-  }
-
-
-  let angle =
-    enemyAngle -
-    player.angle;
-
-
-  while (
-    angle >
-    Math.PI
-  ) {
-
-    angle -=
-      Math.PI * 2;
-
-  }
-
-
-  while (
-    angle <
-    -Math.PI
-  ) {
-
-    angle +=
-      Math.PI * 2;
-
-  }
-
-
-  if (
-    Math.abs(angle) >
-    FOV / 2
-  ) {
-
-    return;
-
-  }
-
-
-  const screenX =
-    canvas.width / 2 +
-    (
-      angle / FOV
-    ) *
-    canvas.width;
 
 
   const size =
     Math.min(
-      canvas.height * 0.8,
+      canvas.height*.8,
       canvas.height /
-      distance
+      p.distance
     );
 
 
   const top =
-    canvas.height / 2 -
-    size * 0.5;
+    canvas.height/2 -
+    size*.5;
 
 
   ctx.fillStyle =
-    "#080808";
+    enemy.hitTimer > 0
+      ? "#fff"
+      : "#8b1515";
+
 
   ctx.fillRect(
-    screenX -
-    size * 0.3,
+    p.screenX -
+    size*.25,
     top +
-    size * 0.67,
-    size * 0.6,
-    size * 0.12
+    size*.15,
+    size*.5,
+    size*.55
   );
 
 
-  if (
+  ctx.fillStyle =
     enemy.hitTimer > 0
-  ) {
-
-    ctx.fillStyle =
-      "#ffffff";
-
-  }
-
-  else {
-
-    ctx.fillStyle =
-      "#8b1515";
-
-  }
+      ? "#fff"
+      : "#b52222";
 
 
   ctx.fillRect(
-    screenX -
-    size * 0.25,
-    top +
-    size * 0.15,
-    size * 0.5,
-    size * 0.55
-  );
-
-
-  if (
-    enemy.hitTimer > 0
-  ) {
-
-    ctx.fillStyle =
-      "#ffffff";
-
-  }
-
-  else {
-
-    ctx.fillStyle =
-      "#b52222";
-
-  }
-
-
-  ctx.fillRect(
-    screenX -
-    size * 0.2,
+    p.screenX -
+    size*.2,
     top,
-    size * 0.4,
-    size * 0.25
+    size*.4,
+    size*.25
   );
 
 
@@ -3073,68 +2615,64 @@ function renderEnemy() {
     "#fff";
 
   ctx.fillRect(
-    screenX -
-    size * 0.13,
+    p.screenX -
+    size*.13,
     top +
-    size * 0.08,
-    size * 0.06,
-    size * 0.06
+    size*.08,
+    size*.06,
+    size*.06
   );
 
-
   ctx.fillRect(
-    screenX +
-    size * 0.07,
+    p.screenX +
+    size*.07,
     top +
-    size * 0.08,
-    size * 0.06,
-    size * 0.06
+    size*.08,
+    size*.06,
+    size*.06
   );
 
 
   /*
-    Enemy health.
+    Health bar
   */
 
   const barWidth =
-    size * 0.6;
-
-  const healthRatio =
-    enemy.health /
-    enemy.maxHealth;
-
+    size*.6;
 
   ctx.fillStyle =
     "#111";
 
   ctx.fillRect(
-    screenX -
-    barWidth / 2,
+    p.screenX -
+    barWidth/2,
     top -
-    size * 0.08,
+    size*.08,
     barWidth,
-    size * 0.035
+    size*.035
   );
 
-
   ctx.fillStyle =
-    "#e22";
+    "#e33";
 
   ctx.fillRect(
-    screenX -
-    barWidth / 2,
+    p.screenX -
+    barWidth/2,
     top -
-    size * 0.08,
+    size*.08,
     barWidth *
-    healthRatio,
-    size * 0.035
+    (
+      enemy.health /
+      enemy.maxHealth
+    ),
+    size*.035
   );
 
 }
 
 
 /* =====================================================
-   WEAPON
+   WEAPON RENDER
    ===================================================== */
 
 function renderWeapon() {
@@ -3145,27 +2683,21 @@ function renderWeapon() {
   const height =
     canvas.height;
 
-
-  const recoil =
-    weapon.recoil;
-
-
   const gunWidth =
-    width * 0.18;
+    width*.18;
 
   const gunHeight =
-    height * 0.24;
-
+    height*.24;
 
   const gunX =
-    width / 2 -
-    gunWidth / 2;
-
+    width/2 -
+    gunWidth/2;
 
   const gunY =
     height -
-    gunHeight * 0.65 +
-    recoil * height;
+    gunHeight*.65 +
+    weapon.recoil *
+    height;
 
 
   ctx.fillStyle =
@@ -3183,12 +2715,12 @@ function renderWeapon() {
     "#555";
 
   ctx.fillRect(
-    width / 2 -
-    gunWidth * 0.15,
+    width/2 -
+    gunWidth*.15,
     gunY -
-    gunHeight * 0.25,
-    gunWidth * 0.3,
-    gunHeight * 0.3
+    gunHeight*.25,
+    gunWidth*.3,
+    gunHeight*.3
   );
 
 
@@ -3196,46 +2728,39 @@ function renderWeapon() {
     weapon.muzzleFlash > 0
   ) {
 
-    const flashSize =
-      gunWidth * 0.75;
-
+    const flash =
+      gunWidth*.75;
 
     ctx.fillStyle =
       "#fff";
 
-
     ctx.beginPath();
 
-
     ctx.moveTo(
-      width / 2,
+      width/2,
       gunY -
-      gunHeight * 0.2
+      gunHeight*.2
     );
-
 
     ctx.lineTo(
-      width / 2 -
-      flashSize * 0.35,
+      width/2 -
+      flash*.35,
       gunY -
-      gunHeight * 0.75
+      gunHeight*.75
     );
-
 
     ctx.lineTo(
-      width / 2,
+      width/2,
       gunY -
-      gunHeight * 0.55
+      gunHeight*.55
     );
-
 
     ctx.lineTo(
-      width / 2 +
-      flashSize * 0.35,
+      width/2 +
+      flash*.35,
       gunY -
-      gunHeight * 0.75
+      gunHeight*.75
     );
-
 
     ctx.closePath();
 
@@ -3250,71 +2775,49 @@ function renderWeapon() {
    PAUSE
    ===================================================== */
 
-const pause =
-  document.getElementById("pause");
-
-const resume =
-  document.getElementById("resume");
-
 const pauseScreen =
   document.getElementById(
     "pause-screen"
   );
 
+document
+  .getElementById("pause")
+  .addEventListener(
+    "pointerdown",
+    e => {
 
-pause.addEventListener(
-  "pointerdown",
-  event => {
+      e.preventDefault();
 
-    event.preventDefault();
+      paused = true;
 
-    paused = true;
+      pauseScreen.classList.add(
+        "visible"
+      );
 
-    pauseScreen.classList.add(
-      "visible"
-    );
+    }
+  );
 
-  }
-);
+document
+  .getElementById("resume")
+  .addEventListener(
+    "pointerdown",
+    e => {
 
+      e.preventDefault();
 
-resume.addEventListener(
-  "pointerdown",
-  event => {
+      paused = false;
 
-    event.preventDefault();
+      pauseScreen.classList.remove(
+        "visible"
+      );
 
-    paused = false;
-
-    pauseScreen.classList.remove(
-      "visible"
-    );
-
-  }
-);
+    }
+  );
 
 
 /* =====================================================
    RESTART
    ===================================================== */
-
-const restart =
-  document.getElementById(
-    "restart"
-  );
-
-
-restart.addEventListener(
-  "pointerdown",
-  event => {
-
-    event.preventDefault();
-
-    restartGame();
-
-  }
-);
-
 
 function restartGame() {
 
@@ -3342,27 +2845,44 @@ function restartGame() {
   exit.active =
     false;
 
+
   exit.triggered =
     false;
 
 
-  enemy.x =
-    enemy.startX;
+  for (
+    const enemy of enemies
+  ) {
 
-  enemy.y =
-    enemy.startY;
+    enemy.x =
+      enemy.startX;
 
-  enemy.health =
-    enemy.maxHealth;
+    enemy.y =
+      enemy.startY;
 
-  enemy.alive =
-    true;
+    enemy.health =
+      enemy.maxHealth;
 
-  enemy.attackTimer =
-    0;
+    enemy.alive =
+      true;
 
-  enemy.hitTimer =
-    0;
+    enemy.hitTimer =
+      0;
+
+    enemy.attackTimer =
+      0;
+
+  }
+
+
+  for (
+    const pickup of pickups
+  ) {
+
+    pickup.active =
+      true;
+
+  }
 
 
   weapon.ammo =
@@ -3371,42 +2891,20 @@ function restartGame() {
   weapon.reserveAmmo =
     48;
 
-  weapon.fireTimer =
-    0;
+  weapon.reloading =
+    false;
 
   weapon.reloadTimer =
     0;
 
-  weapon.reloading =
-    false;
-
-  weapon.recoil =
+  weapon.fireTimer =
     0;
 
-  weapon.muzzleFlash =
-    0;
-
-
-  healthDisplay.textContent =
-    player.health;
-
-  keyStatus.textContent =
-    "NO";
-
-
-  updateAmmoDisplay();
-
-  updateObjective();
-
-
-  reloadMessage.style.opacity =
-    "0";
-
-
-  missionComplete =
-    false;
 
   gameOver =
+    false;
+
+  missionComplete =
     false;
 
   paused =
@@ -3421,29 +2919,50 @@ function restartGame() {
       "visible"
     );
 
-
   document
-    .getElementById(
+    getElementById(
       "complete-screen"
     )
     .classList.remove(
       "visible"
     );
 
+
+  updateHUD();
+
+  updateObjective();
+
 }
 
 
-/* =====================================================
-   CONTINUE
-   ===================================================== */
+/* Fix reference safely */
+
+function getElementById(id) {
+  return document.getElementById(id);
+}
+
+
+document
+  .getElementById("restart")
+  .addEventListener(
+    "pointerdown",
+    e => {
+
+      e.preventDefault();
+
+      restartGame();
+
+    }
+  );
+
 
 document
   .getElementById("continue")
   .addEventListener(
     "pointerdown",
-    event => {
+    e => {
 
-      event.preventDefault();
+      e.preventDefault();
 
       restartGame();
 
@@ -3455,35 +2974,32 @@ document
    UPDATE
    ===================================================== */
 
-function update(
-  delta
-) {
+function update(delta) {
 
-  if (gameOver)
-    return;
-
-  if (missionComplete)
+  if (
+    gameOver ||
+    missionComplete ||
+    paused
+  )
     return;
 
 
   /*
-    CAMERA
+    LOOK SMOOTHING
   */
 
   lookVelocity +=
     (
       targetLookVelocity -
       lookVelocity
-    ) *
-    0.18;
-
+    )*.18;
 
   player.angle +=
     lookVelocity;
 
 
   /*
-    WEAPON TIMERS
+    WEAPON
   */
 
   weapon.fireTimer =
@@ -3493,7 +3009,6 @@ function update(
       delta
     );
 
-
   weapon.muzzleFlash =
     Math.max(
       0,
@@ -3501,12 +3016,11 @@ function update(
       delta
     );
 
-
   weapon.recoil =
     Math.max(
       0,
       weapon.recoil -
-      delta * 0.7
+      delta*.7
     );
 
 
@@ -3521,7 +3035,6 @@ function update(
     weapon.reloadTimer -=
       delta;
 
-
     if (
       weapon.reloadTimer <= 0
     ) {
@@ -3530,31 +3043,25 @@ function update(
         weapon.magazineSize -
         weapon.ammo;
 
-
       const loaded =
         Math.min(
           needed,
           weapon.reserveAmmo
         );
 
-
       weapon.ammo +=
         loaded;
-
 
       weapon.reserveAmmo -=
         loaded;
 
-
       weapon.reloading =
         false;
-
 
       reloadMessage.style.opacity =
         "0";
 
-
-      updateAmmoDisplay();
+      updateHUD();
 
     }
 
@@ -3572,22 +3079,22 @@ function update(
     input.moveX;
 
 
-  const movementLength =
+  const length =
     Math.sqrt(
-      forward * forward +
-      strafe * strafe
+      forward*forward +
+      strafe*strafe
     );
 
 
   if (
-    movementLength > 1
+    length > 1
   ) {
 
     forward /=
-      movementLength;
+      length;
 
     strafe /=
-      movementLength;
+      length;
 
   }
 
@@ -3603,27 +3110,22 @@ function update(
     );
 
 
-  const moveX =
-    (
-      cos * forward -
-      sin * strafe
-    ) *
-    player.moveSpeed *
-    delta;
-
-
-  const moveY =
-    (
-      sin * forward +
-      cos * strafe
-    ) *
-    player.moveSpeed *
-    delta;
-
-
   movePlayer(
-    moveX,
-    moveY
+
+    (
+      cos*forward -
+      sin*strafe
+    ) *
+    player.moveSpeed *
+    delta,
+
+    (
+      sin*forward +
+      cos*strafe
+    ) *
+    player.moveSpeed *
+    delta
+
   );
 
 
@@ -3633,51 +3135,22 @@ function update(
 
   if (
     input.firing
-  ) {
-
+  )
     fireWeapon();
 
-  }
+
+  /*
+    PICKUPS
+  */
+
+  updatePickups();
 
 
   /*
-    KEY AUTO-DETECTION
-
-    We still require USE,
-    but this makes the key
-    appear obviously close.
+    ENEMIES
   */
 
-  if (
-    !key.collected &&
-    distanceBetween(
-      player.x,
-      player.y,
-      key.x,
-      key.y
-    ) <
-    key.pickupDistance
-  ) {
-
-    showMessage(
-      "PRESS USE TO TAKE KEY"
-    );
-
-  }
-
-
-  /*
-    EXIT
-  */
-
-  checkExit();
-
-
-  /*
-    ENEMY
-  */
-
-  updateEnemy(
+  updateEnemies(
     delta
   );
 
@@ -3685,38 +3158,30 @@ function update(
 
 
 /* =====================================================
-   GAME LOOP
+   LOOP
    ===================================================== */
 
 let lastTime =
   performance.now();
 
-
-function gameLoop(
-  time
-) {
+function gameLoop(time) {
 
   const delta =
     Math.min(
-      0.05,
+      .05,
       (
         time -
         lastTime
       ) / 1000
     );
 
-
   lastTime =
     time;
 
 
-  if (!paused) {
+  update(delta);
 
-    update(delta);
-
-    render();
-
-  }
+  render();
 
 
   requestAnimationFrame(
@@ -3730,7 +3195,7 @@ function gameLoop(
    START
    ===================================================== */
 
-updateAmmoDisplay();
+updateHUD();
 
 updateObjective();
 
