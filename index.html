@@ -134,6 +134,17 @@ button {
   font-size: 18px;
 }
 
+#map-button {
+  position: absolute;
+  right: 65px;
+  top: 12px;
+  width: 44px;
+  height: 44px;
+  z-index: 40;
+  border-radius: 7px;
+  font-size: 19px;
+}
+
 #joystick {
   position: absolute;
   left: 25px;
@@ -333,11 +344,113 @@ button {
   color: #55ff55;
 }
 
-.overlay button {
-  padding: 13px 28px;
-  border-radius: 6px;
-  font-size: 16px;
+
+/* =====================================================
+   AUTOMAP
+   ===================================================== */
+
+#map-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  background: rgba(0,0,0,.96);
+  color: white;
+  touch-action: none;
+}
+
+#map-screen.visible {
+  display: flex;
+  flex-direction: column;
+}
+
+#map-header {
+  height: 58px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid #333;
+  background: #080808;
+}
+
+#map-title {
+  font-size: 15px;
   font-weight: bold;
+  letter-spacing: 2px;
+}
+
+#close-map {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  font-size: 18px;
+}
+
+#map-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 12px;
+}
+
+#map-canvas {
+  width: min(92vw, 620px);
+  height: min(78vh, 620px);
+  image-rendering: pixelated;
+  border: 1px solid #333;
+  background: #000;
+}
+
+#map-legend {
+  min-height: 45px;
+  padding: 5px 10px 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: #bbb;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.legend-player {
+  background: #55ff55;
+}
+
+.legend-enemy {
+  background: #ff3333;
+}
+
+.legend-blueberry {
+  background: #3388ff;
+}
+
+.legend-key {
+  background: #ffd52f;
+}
+
+.legend-door {
+  background: #ff9c22;
+}
+
+.legend-exit {
+  background: #55ff55;
 }
 
 </style>
@@ -358,6 +471,8 @@ button {
 <div id="mission">MISSION 01</div>
 
 <div id="objective">FIND THE KEY</div>
+
+<button id="map-button">🗺</button>
 
 <button id="pause">Ⅱ</button>
 
@@ -398,6 +513,67 @@ button {
 
 </div>
 
+
+<!-- ===================================================
+     AUTOMAP
+     =================================================== -->
+
+<div id="map-screen">
+
+  <div id="map-header">
+
+    <div id="map-title">
+      AUTOMAP
+    </div>
+
+    <button id="close-map">
+      ✕
+    </button>
+
+  </div>
+
+  <div id="map-wrapper">
+
+    <canvas id="map-canvas"></canvas>
+
+  </div>
+
+  <div id="map-legend">
+
+    <div class="legend-item">
+      <span class="legend-dot legend-player"></span>
+      YOU
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot legend-enemy"></span>
+      ENEMY
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot legend-blueberry"></span>
+      BLUEBERRY
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot legend-key"></span>
+      KEY
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-dot legend-door"></span>
+      DOOR
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ===================================================
+     PAUSE
+     =================================================== -->
+
 <div id="pause-screen" class="overlay">
 
   <div class="panel">
@@ -413,6 +589,11 @@ button {
   </div>
 
 </div>
+
+
+<!-- ===================================================
+     DEATH
+     =================================================== -->
 
 <div id="death-screen" class="overlay">
 
@@ -431,6 +612,11 @@ button {
   </div>
 
 </div>
+
+
+<!-- ===================================================
+     COMPLETE
+     =================================================== -->
 
 <div id="complete-screen" class="overlay">
 
@@ -453,7 +639,25 @@ button {
 
 </div>
 
+
 <script>
+
+
+/* =====================================================
+   DEVELOPMENT SETTINGS
+   ===================================================== */
+
+/*
+   TRUE while developing.
+
+   This lets us see enemies on the automap so we can
+   watch their movement and make sure their AI behaves.
+
+   Eventually change this to false for the real game.
+*/
+
+const SHOW_ENEMIES_ON_MAP = true;
+
 
 /* =====================================================
    CANVAS
@@ -467,17 +671,24 @@ const ctx =
 
 ctx.imageSmoothingEnabled = false;
 
+
 function resizeCanvas() {
 
   canvas.width =
-    Math.floor(window.innerWidth / 2);
+    Math.floor(
+      window.innerWidth / 2
+    );
 
   canvas.height =
-    Math.floor(window.innerHeight / 2);
+    Math.floor(
+      window.innerHeight / 2
+    );
 
 }
 
+
 resizeCanvas();
+
 
 window.addEventListener(
   "resize",
@@ -488,6 +699,13 @@ window.addEventListener(
 /* =====================================================
    MAP
    ===================================================== */
+
+/*
+   0 = floor
+   1 = wall
+   3 = locked door
+   4 = exit marker
+*/
 
 const map = [
 
@@ -518,6 +736,91 @@ const map = [
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
 ];
+
+
+/* =====================================================
+   AUTOMAP DISCOVERY
+   ===================================================== */
+
+const discovered = [];
+
+for (
+  let y = 0;
+  y < map.length;
+  y++
+) {
+
+  discovered[y] = [];
+
+  for (
+    let x = 0;
+    x < map[y].length;
+    x++
+  ) {
+
+    discovered[y][x] = false;
+
+  }
+
+}
+
+
+/*
+   Reveal the tile the player is standing on plus
+   nearby tiles.
+
+   We deliberately reveal a small area rather than
+   the entire map.
+*/
+
+function revealMapAroundPlayer() {
+
+  const px =
+    Math.floor(player.x);
+
+  const py =
+    Math.floor(player.y);
+
+  const revealRadius = 1;
+
+
+  for (
+    let y =
+      py - revealRadius;
+
+    y <=
+      py + revealRadius;
+
+    y++
+  ) {
+
+    for (
+      let x =
+        px - revealRadius;
+
+      x <=
+        px + revealRadius;
+
+      x++
+    ) {
+
+      if (
+        y >= 0 &&
+        y < map.length &&
+        x >= 0 &&
+        x < map[0].length
+      ) {
+
+        discovered[y][x] =
+          true;
+
+      }
+
+    }
+
+  }
+
+}
 
 
 /* =====================================================
@@ -554,6 +857,7 @@ const key = {
 
 };
 
+
 const door = {
 
   x: 12.5,
@@ -562,6 +866,7 @@ const door = {
   open: false
 
 };
+
 
 const exit = {
 
@@ -581,49 +886,75 @@ const enemies = [
 
   {
     type: "grunt",
+
     x: 6.5,
     y: 3.5,
+
     startX: 6.5,
     startY: 3.5,
+
     health: 3,
     maxHealth: 3,
+
     alive: true,
+
     hitTimer: 0,
     attackTimer: 0,
+
     speed: .55,
+
     attackRange: 2.3,
+
     damage: 10
   },
 
+
   {
     type: "armoured",
+
     x: 11.5,
     y: 5.5,
+
     startX: 11.5,
     startY: 5.5,
+
     health: 6,
     maxHealth: 6,
+
     alive: true,
+
     hitTimer: 0,
     attackTimer: 0,
+
     speed: .42,
+
     attackRange: 2.4,
+
     damage: 15
   },
 
+
   {
     type: "grunt",
+
     x: 7.5,
     y: 9.5,
+
     startX: 7.5,
     startY: 9.5,
+
     health: 3,
     maxHealth: 3,
+
     alive: true,
+
     hitTimer: 0,
     attackTimer: 0,
+
     speed: .62,
+
     attackRange: 2.3,
+
     damage: 10
   }
 
@@ -638,15 +969,20 @@ const pickups = [
 
   {
     type: "health",
+
     x: 3.5,
     y: 3.5,
+
     active: true
   },
 
+
   {
     type: "ammo",
+
     x: 10.5,
     y: 7.5,
+
     active: true
   }
 
@@ -681,6 +1017,7 @@ const weapons = {
 
   },
 
+
   shotgun: {
 
     name: "SHOTGUN",
@@ -705,11 +1042,14 @@ const weapons = {
 
 };
 
+
 let currentWeapon =
   "pistol";
 
+
 let weapon =
   weapons[currentWeapon];
+
 
 weapon.fireTimer = 0;
 weapon.reloadTimer = 0;
@@ -728,6 +1068,8 @@ let gameOver = false;
 
 let missionComplete = false;
 
+let mapOpen = false;
+
 
 /* =====================================================
    INPUT
@@ -737,6 +1079,7 @@ const input = {
 
   moveX: 0,
   moveY: 0,
+
   firing: false
 
 };
@@ -747,14 +1090,19 @@ const input = {
    ===================================================== */
 
 const joystick =
-  document.getElementById("joystick");
+  document.getElementById(
+    "joystick"
+  );
+
 
 const knob =
   document.getElementById(
     "joystick-knob"
   );
 
+
 let joystickActive = false;
+
 
 joystick.addEventListener(
   "pointerdown",
@@ -773,6 +1121,7 @@ joystick.addEventListener(
   }
 );
 
+
 joystick.addEventListener(
   "pointermove",
   e => {
@@ -785,46 +1134,58 @@ joystick.addEventListener(
   }
 );
 
+
 joystick.addEventListener(
   "pointerup",
   resetJoystick
 );
+
 
 joystick.addEventListener(
   "pointercancel",
   resetJoystick
 );
 
+
 function updateJoystick(e) {
 
   const rect =
     joystick.getBoundingClientRect();
 
+
   const cx =
     rect.width / 2;
 
+
   const cy =
     rect.height / 2;
+
 
   let x =
     e.clientX -
     rect.left -
     cx;
 
+
   let y =
     e.clientY -
     rect.top -
     cy;
 
+
   const max =
     rect.width * .28;
+
 
   const dist =
     Math.sqrt(
       x*x + y*y
     );
 
-  if (dist > max) {
+
+  if (
+    dist > max
+  ) {
 
     x =
       x / dist * max;
@@ -834,16 +1195,20 @@ function updateJoystick(e) {
 
   }
 
+
   knob.style.transform =
     `translate(${x}px,${y}px)`;
 
+
   input.moveX =
     x / max;
+
 
   input.moveY =
     y / max;
 
 }
+
 
 function resetJoystick() {
 
@@ -868,6 +1233,7 @@ const lookZone =
     "look-zone"
   );
 
+
 let lookActive = false;
 
 let lastLookX = 0;
@@ -876,7 +1242,10 @@ let targetLookVelocity = 0;
 
 let lookVelocity = 0;
 
-const LOOK_SENSITIVITY = .0025;
+
+const LOOK_SENSITIVITY =
+  .0025;
+
 
 lookZone.addEventListener(
   "pointerdown",
@@ -893,10 +1262,12 @@ lookZone.addEventListener(
     lastLookX =
       e.clientX;
 
-    targetLookVelocity = 0;
+    targetLookVelocity =
+      0;
 
   }
 );
+
 
 lookZone.addEventListener(
   "pointermove",
@@ -905,17 +1276,21 @@ lookZone.addEventListener(
     if (!lookActive)
       return;
 
+
     const dx =
       e.clientX -
       lastLookX;
 
+
     lastLookX =
       e.clientX;
+
 
     if (
       Math.abs(dx) < .5
     )
       return;
+
 
     targetLookVelocity =
       dx *
@@ -923,6 +1298,7 @@ lookZone.addEventListener(
 
   }
 );
+
 
 lookZone.addEventListener(
   "pointerup",
@@ -934,6 +1310,7 @@ lookZone.addEventListener(
 
   }
 );
+
 
 lookZone.addEventListener(
   "pointercancel",
@@ -956,8 +1333,10 @@ function isWall(x,y) {
   const mx =
     Math.floor(x);
 
+
   const my =
     Math.floor(y);
+
 
   if (
     my < 0 ||
@@ -967,11 +1346,16 @@ function isWall(x,y) {
   )
     return true;
 
+
   const tile =
     map[my][mx];
 
-  if (tile === 1)
+
+  if (
+    tile === 1
+  )
     return true;
+
 
   if (
     tile === 3 &&
@@ -979,17 +1363,21 @@ function isWall(x,y) {
   )
     return true;
 
+
   return false;
 
 }
+
 
 function movePlayer(dx,dy) {
 
   const nx =
     player.x + dx;
 
+
   const ny =
     player.y + dy;
+
 
   if (
     !isWall(
@@ -999,6 +1387,7 @@ function movePlayer(dx,dy) {
   )
     player.x = nx;
 
+
   if (
     !isWall(
       player.x,
@@ -1006,6 +1395,9 @@ function movePlayer(dx,dy) {
     )
   )
     player.y = ny;
+
+
+  revealMapAroundPlayer();
 
 }
 
@@ -1035,6 +1427,7 @@ function distanceBetween(
 
 let audioContext = null;
 
+
 function audio() {
 
   if (!audioContext) {
@@ -1047,15 +1440,18 @@ function audio() {
 
   }
 
+
   if (
     audioContext.state ===
     "suspended"
   )
     audioContext.resume();
 
+
   return audioContext;
 
 }
+
 
 function tone(
   frequency,
@@ -1067,22 +1463,28 @@ function tone(
   const a =
     audio();
 
+
   const osc =
     a.createOscillator();
+
 
   const gain =
     a.createGain();
 
+
   osc.type =
     type;
 
+
   osc.frequency.value =
     frequency;
+
 
   gain.gain.setValueAtTime(
     volume,
     a.currentTime
   );
+
 
   gain.gain.exponentialRampToValueAtTime(
     .001,
@@ -1090,13 +1492,16 @@ function tone(
     duration
   );
 
+
   osc.connect(gain);
 
   gain.connect(
     a.destination
   );
 
+
   osc.start();
+
 
   osc.stop(
     a.currentTime +
@@ -1104,6 +1509,7 @@ function tone(
   );
 
 }
+
 
 function gunSound() {
 
@@ -1118,6 +1524,7 @@ function gunSound() {
       "sawtooth",
       .22
     );
+
 
     setTimeout(
       () =>
@@ -1145,6 +1552,7 @@ function gunSound() {
 
 }
 
+
 function pickupSound() {
 
   tone(
@@ -1153,6 +1561,7 @@ function pickupSound() {
     "square",
     .06
   );
+
 
   setTimeout(
     () =>
@@ -1167,6 +1576,7 @@ function pickupSound() {
 
 }
 
+
 function doorSound() {
 
   tone(
@@ -1178,17 +1588,31 @@ function doorSound() {
 
 }
 
+
 function completeSound() {
 
-  tone(523,.12);
+  tone(
+    523,
+    .12
+  );
+
 
   setTimeout(
-    () => tone(659,.12),
+    () =>
+      tone(
+        659,
+        .12
+      ),
     120
   );
 
+
   setTimeout(
-    () => tone(784,.25),
+    () =>
+      tone(
+        784,
+        .25
+      ),
     240
   );
 
@@ -1204,43 +1628,52 @@ const healthDisplay =
     "health"
   );
 
+
 const ammoDisplay =
   document.getElementById(
     "ammo"
   );
+
 
 const keyStatus =
   document.getElementById(
     "key-status"
   );
 
+
 const objective =
   document.getElementById(
     "objective"
   );
+
 
 const message =
   document.getElementById(
     "message"
   );
 
+
 const reloadMessage =
   document.getElementById(
     "reload-message"
   );
+
 
 function updateHUD() {
 
   healthDisplay.textContent =
     player.health;
 
+
   ammoDisplay.textContent =
     `${weapon.ammo} / ${weapon.reserveAmmo}`;
+
 
   keyStatus.textContent =
     key.collected
       ? "YES"
       : "NO";
+
 
   document
     .getElementById("weapon")
@@ -1249,17 +1682,21 @@ function updateHUD() {
 
 }
 
+
 function showMessage(text) {
 
   message.textContent =
     text;
 
+
   message.style.opacity =
     "1";
+
 
   clearTimeout(
     showMessage.timer
   );
+
 
   showMessage.timer =
     setTimeout(
@@ -1290,6 +1727,7 @@ document
 
     }
   );
+
 
 function switchWeapon() {
 
@@ -1362,6 +1800,7 @@ function switchWeapon() {
     weapon.name
   );
 
+
   updateHUD();
 
 }
@@ -1375,6 +1814,7 @@ const fire =
   document.getElementById(
     "fire"
   );
+
 
 fire.addEventListener(
   "pointerdown",
@@ -1393,6 +1833,7 @@ fire.addEventListener(
   }
 );
 
+
 fire.addEventListener(
   "pointerup",
   () => {
@@ -1405,6 +1846,7 @@ fire.addEventListener(
 
   }
 );
+
 
 fire.addEventListener(
   "pointercancel",
@@ -1430,6 +1872,7 @@ function fireWeapon() {
     gameOver ||
     missionComplete ||
     paused ||
+    mapOpen ||
     weapon.reloading ||
     weapon.fireTimer > 0
   )
@@ -1449,14 +1892,17 @@ function fireWeapon() {
 
   weapon.ammo--;
 
+
   weapon.fireTimer =
     weapon.fireCooldown;
+
 
   weapon.recoil =
     currentWeapon ===
     "shotgun"
       ? .16
       : .09;
+
 
   weapon.muzzleFlash =
     currentWeapon ===
@@ -1466,6 +1912,7 @@ function fireWeapon() {
 
 
   gunSound();
+
 
   updateHUD();
 
@@ -1502,6 +1949,7 @@ function firePellet() {
   let closestEnemy =
     null;
 
+
   let closestDistance =
     Infinity;
 
@@ -1520,9 +1968,11 @@ function firePellet() {
       enemy.x -
       player.x;
 
+
     const dy =
       enemy.y -
       player.y;
+
 
     const distance =
       Math.sqrt(
@@ -1564,14 +2014,16 @@ function firePellet() {
 
 
     while (
-      difference > Math.PI
+      difference >
+      Math.PI
     )
       difference -=
         Math.PI*2;
 
 
     while (
-      difference < -Math.PI
+      difference <
+      -Math.PI
     )
       difference +=
         Math.PI*2;
@@ -1597,6 +2049,7 @@ function firePellet() {
 
       closestEnemy =
         enemy;
+
 
       closestDistance =
         distance;
@@ -1643,8 +2096,10 @@ function firePellet() {
       closestEnemy.health =
         0;
 
+
       closestEnemy.alive =
         false;
+
 
       showMessage(
         "ENEMY DOWN"
@@ -1676,6 +2131,7 @@ document
     }
   );
 
+
 function reloadWeapon() {
 
   if (
@@ -1689,6 +2145,7 @@ function reloadWeapon() {
 
   weapon.reloading =
     true;
+
 
   weapon.reloadTimer =
     weapon.reloadTime;
@@ -1717,11 +2174,13 @@ document
     }
   );
 
+
 function useAction() {
 
   if (
     gameOver ||
-    missionComplete
+    missionComplete ||
+    mapOpen
   )
     return;
 
@@ -1739,13 +2198,17 @@ function useAction() {
     key.collected =
       true;
 
+
     pickupSound();
+
 
     showMessage(
       "KEY ACQUIRED"
     );
 
+
     updateObjective();
+
 
     return;
 
@@ -1769,11 +2232,14 @@ function useAction() {
       door.open =
         true;
 
+
       doorSound();
+
 
       showMessage(
         "DOOR UNLOCKED"
       );
+
 
       updateObjective();
 
@@ -1786,6 +2252,7 @@ function useAction() {
       );
 
     }
+
 
     return;
 
@@ -1837,6 +2304,7 @@ function updatePickups() {
       pickup.active =
         false;
 
+
       pickupSound();
 
 
@@ -1851,6 +2319,7 @@ function updatePickups() {
             player.health + 25
           );
 
+
         showMessage(
           "HEALTH +25"
         );
@@ -1863,14 +2332,20 @@ function updatePickups() {
         "ammo"
       ) {
 
+        /*
+          Pistol ammo only.
+        */
+
         weapons.pistol.reserveAmmo +=
           24;
+
 
         showMessage(
           "PISTOL AMMO +24"
         );
 
       }
+
 
       updateHUD();
 
@@ -1894,6 +2369,7 @@ function updateObjective() {
     objective.textContent =
       "MISSION COMPLETE";
 
+
     return;
 
   }
@@ -1905,6 +2381,7 @@ function updateObjective() {
 
     objective.textContent =
       "FIND THE KEY";
+
 
     return;
 
@@ -1918,6 +2395,7 @@ function updateObjective() {
     objective.textContent =
       "FIND THE LOCKED DOOR";
 
+
     return;
 
   }
@@ -1925,6 +2403,7 @@ function updateObjective() {
 
   exit.active =
     true;
+
 
   objective.textContent =
     "REACH THE EXIT";
@@ -1941,7 +2420,9 @@ function completeMission() {
   missionComplete =
     true;
 
+
   completeSound();
+
 
   document
     .getElementById(
@@ -1961,10 +2442,12 @@ function completeMission() {
 const FOV =
   Math.PI / 3;
 
+
 function castRay(angle) {
 
   const step =
     .025;
+
 
   let distance =
     0;
@@ -2007,7 +2490,7 @@ function castRay(angle) {
 
 
 /* =====================================================
-   ENEMY LINE OF SIGHT RAY
+   ENEMY LINE OF SIGHT
    ===================================================== */
 
 function enemyRay(
@@ -2016,7 +2499,8 @@ function enemyRay(
 ) {
 
   const step =
-    0.02;
+    .02;
+
 
   let distance =
     0;
@@ -2073,6 +2557,7 @@ function hasLineOfSight(
     player.x -
     enemy.x;
 
+
   const dy =
     player.y -
     enemy.y;
@@ -2087,7 +2572,7 @@ function hasLineOfSight(
 
   const steps =
     Math.ceil(
-      distance / 0.05
+      distance / .05
     );
 
 
@@ -2164,6 +2649,7 @@ function updateEnemies(
       player.x -
       enemy.x;
 
+
     const dy =
       player.y -
       enemy.y;
@@ -2177,8 +2663,8 @@ function updateEnemies(
 
 
     /*
-      Don't react to the player
-      from ridiculously far away.
+      Enemy doesn't react beyond
+      nine map units.
     */
 
     if (
@@ -2188,8 +2674,7 @@ function updateEnemies(
 
 
     /*
-      Chase the player when outside
-      attack range.
+      Chase player.
     */
 
     if (
@@ -2237,19 +2722,8 @@ function updateEnemies(
 
 
     /*
-      ==============================
-      ATTACK CHECK
-      ==============================
-
-      Enemy must:
-
-      1. Be alive
-      2. Be within range
-      3. Not be inside a wall
-      4. Be visible on screen
-      5. Have genuine line of sight
+      Attack checks.
     */
-
 
     const enemyInWall =
       isWall(
@@ -2289,12 +2763,6 @@ function updateEnemies(
       continue;
 
 
-    /*
-      Everything checks out.
-      Now the enemy is allowed
-      to attack.
-    */
-
     if (
       enemy.attackTimer <= 0
     ) {
@@ -2324,25 +2792,20 @@ function moveEnemy(
   dy
 ) {
 
-  /*
-    Give enemies a physical radius.
-    This prevents their centre point
-    getting pushed into walls.
-  */
-
   const radius =
-    0.22;
+    .22;
 
 
   const nx =
     enemy.x + dx;
+
 
   const ny =
     enemy.y + dy;
 
 
   /*
-    X movement
+    X movement.
     */
 
   if (
@@ -2371,7 +2834,7 @@ function moveEnemy(
 
 
   /*
-    Y movement
+    Y movement.
     */
 
   if (
@@ -2482,6 +2945,7 @@ function spritePosition(
     x -
     player.x;
 
+
   const dy =
     y -
     player.y;
@@ -2507,14 +2971,16 @@ function spritePosition(
 
 
   while (
-    relative > Math.PI
+    relative >
+    Math.PI
   )
     relative -=
       Math.PI*2;
 
 
   while (
-    relative < -Math.PI
+    relative <
+    -Math.PI
   )
     relative +=
       Math.PI*2;
@@ -2549,8 +3015,11 @@ function spritePosition(
 
 
   return {
+
     distance,
+
     screenX
+
   };
 
 }
@@ -2592,12 +3061,14 @@ function renderKey() {
   ctx.shadowColor =
     "#ffd52f";
 
+
   ctx.shadowBlur =
     size * .6;
 
 
   ctx.strokeStyle =
     "#ffe866";
+
 
   ctx.lineWidth =
     Math.max(
@@ -2607,6 +3078,7 @@ function renderKey() {
 
 
   ctx.beginPath();
+
 
   ctx.arc(
     p.screenX -
@@ -2618,16 +3090,19 @@ function renderKey() {
     Math.PI*2
   );
 
+
   ctx.stroke();
 
 
   ctx.beginPath();
+
 
   ctx.moveTo(
     p.screenX,
     y -
     size*.02
   );
+
 
   ctx.lineTo(
     p.screenX +
@@ -2636,6 +3111,7 @@ function renderKey() {
     size*.35
   );
 
+
   ctx.lineTo(
     p.screenX +
     size*.25,
@@ -2643,10 +3119,12 @@ function renderKey() {
     size*.55
   );
 
+
   ctx.stroke();
 
 
-  ctx.shadowBlur = 0;
+  ctx.shadowBlur =
+    0;
 
 }
 
@@ -2694,6 +3172,7 @@ function renderPickup(
     ctx.fillStyle =
       "#222";
 
+
     ctx.fillRect(
       p.screenX -
       size*.48,
@@ -2707,6 +3186,7 @@ function renderPickup(
     ctx.fillStyle =
       "#d7d7d7";
 
+
     ctx.fillRect(
       p.screenX -
       size*.42,
@@ -2719,6 +3199,7 @@ function renderPickup(
 
     ctx.fillStyle =
       "#d71919";
+
 
     ctx.fillRect(
       p.screenX -
@@ -2745,6 +3226,7 @@ function renderPickup(
 
     ctx.fillStyle =
       "#2b2b2b";
+
 
     ctx.fillRect(
       p.screenX -
@@ -2819,12 +3301,14 @@ function renderExit() {
   ctx.shadowColor =
     "#35ff45";
 
+
   ctx.shadowBlur =
     size*.35;
 
 
   ctx.strokeStyle =
     "#42ff55";
+
 
   ctx.lineWidth =
     Math.max(
@@ -2868,12 +3352,6 @@ function renderEnemy(
     return;
 
 
-  /*
-    Final safety check.
-    An enemy inside a wall cannot
-    be rendered.
-  */
-
   if (
     isWall(
       enemy.x,
@@ -2901,7 +3379,7 @@ function renderEnemy(
 
 
   /*
-    ARMOURED BLUEBERRY
+    BLUEBERRY / ARMOURED ENEMY
     */
 
   if (
@@ -2913,6 +3391,7 @@ function renderEnemy(
       hurt
         ? "#fff"
         : "#283847";
+
 
     ctx.fillRect(
       p.screenX -
@@ -2929,6 +3408,7 @@ function renderEnemy(
         ? "#fff"
         : "#496477";
 
+
     ctx.fillRect(
       p.screenX -
       size*.24,
@@ -2944,7 +3424,9 @@ function renderEnemy(
         ? "#fff"
         : "#647d8c";
 
+
     ctx.beginPath();
+
 
     ctx.arc(
       p.screenX,
@@ -2954,6 +3436,7 @@ function renderEnemy(
       0,
       Math.PI*2
     );
+
 
     ctx.fill();
 
@@ -2985,6 +3468,7 @@ function renderEnemy(
     ctx.fillStyle =
       "#161616";
 
+
     ctx.fillRect(
       p.screenX +
       size*.22,
@@ -3000,12 +3484,13 @@ function renderEnemy(
 
     /*
       STANDARD GRUNT
-    */
+      */
 
     ctx.fillStyle =
       hurt
         ? "#fff"
         : "#5b1515";
+
 
     ctx.fillRect(
       p.screenX -
@@ -3022,6 +3507,7 @@ function renderEnemy(
         ? "#fff"
         : "#9c2525";
 
+
     ctx.fillRect(
       p.screenX -
       size*.22,
@@ -3037,7 +3523,9 @@ function renderEnemy(
         ? "#fff"
         : "#b63725";
 
+
     ctx.beginPath();
+
 
     ctx.arc(
       p.screenX,
@@ -3047,6 +3535,7 @@ function renderEnemy(
       0,
       Math.PI*2
     );
+
 
     ctx.fill();
 
@@ -3077,6 +3566,7 @@ function renderEnemy(
 
     ctx.fillStyle =
       "#181818";
+
 
     ctx.fillRect(
       p.screenX +
@@ -3144,6 +3634,7 @@ function renderWeapon() {
   const width =
     canvas.width;
 
+
   const height =
     canvas.height;
 
@@ -3184,12 +3675,15 @@ function renderPistol(
   const gunWidth =
     width*.2;
 
+
   const gunHeight =
     height*.25;
+
 
   const gunX =
     width/2 -
     gunWidth/2;
+
 
   const gunY =
     height -
@@ -3200,6 +3694,7 @@ function renderPistol(
 
   ctx.fillStyle =
     "#9b6b52";
+
 
   ctx.fillRect(
     gunX +
@@ -3214,6 +3709,7 @@ function renderPistol(
   ctx.fillStyle =
     "#191919";
 
+
   ctx.fillRect(
     gunX +
     gunWidth*.32,
@@ -3227,6 +3723,7 @@ function renderPistol(
   ctx.fillStyle =
     "#303030";
 
+
   ctx.fillRect(
     gunX +
     gunWidth*.23,
@@ -3238,6 +3735,7 @@ function renderPistol(
 
   ctx.fillStyle =
     "#111";
+
 
   ctx.fillRect(
     width/2 -
@@ -3274,12 +3772,15 @@ function renderShotgun(
   const gunWidth =
     width*.32;
 
+
   const gunHeight =
     height*.28;
+
 
   const gunX =
     width/2 -
     gunWidth/2;
+
 
   const gunY =
     height -
@@ -3290,6 +3791,7 @@ function renderShotgun(
 
   ctx.fillStyle =
     "#633d23";
+
 
   ctx.fillRect(
     gunX,
@@ -3303,6 +3805,7 @@ function renderShotgun(
   ctx.fillStyle =
     "#252525";
 
+
   ctx.fillRect(
     gunX +
     gunWidth*.2,
@@ -3315,6 +3818,7 @@ function renderShotgun(
 
   ctx.fillStyle =
     "#111";
+
 
   ctx.fillRect(
     width/2 -
@@ -3338,6 +3842,7 @@ function renderShotgun(
 
   ctx.fillStyle =
     "#633d23";
+
 
   ctx.fillRect(
     width/2 -
@@ -3381,6 +3886,7 @@ function renderMuzzleFlash(
   ctx.shadowColor =
     "#ffb000";
 
+
   ctx.shadowBlur =
     flash*.5;
 
@@ -3391,11 +3897,13 @@ function renderMuzzleFlash(
 
   ctx.beginPath();
 
+
   ctx.moveTo(
     width/2,
     gunY -
     gunHeight*.18
   );
+
 
   ctx.lineTo(
     width/2 -
@@ -3404,11 +3912,13 @@ function renderMuzzleFlash(
     gunHeight*.8
   );
 
+
   ctx.lineTo(
     width/2,
     gunY -
     gunHeight*.57
   );
+
 
   ctx.lineTo(
     width/2 +
@@ -3417,12 +3927,15 @@ function renderMuzzleFlash(
     gunHeight*.8
   );
 
+
   ctx.closePath();
+
 
   ctx.fill();
 
 
-  ctx.shadowBlur = 0;
+  ctx.shadowBlur =
+    0;
 
 }
 
@@ -3435,6 +3948,7 @@ function renderWalls() {
 
   const width =
     canvas.width;
+
 
   const height =
     canvas.height;
@@ -3454,6 +3968,7 @@ function renderWalls() {
     "#05090c"
   );
 
+
   sky.addColorStop(
     1,
     "#1b252b"
@@ -3462,6 +3977,7 @@ function renderWalls() {
 
   ctx.fillStyle =
     sky;
+
 
   ctx.fillRect(
     0,
@@ -3485,6 +4001,7 @@ function renderWalls() {
     "#332d27"
   );
 
+
   floor.addColorStop(
     1,
     "#100f0e"
@@ -3493,6 +4010,7 @@ function renderWalls() {
 
   ctx.fillStyle =
     floor;
+
 
   ctx.fillRect(
     0,
@@ -3606,6 +4124,7 @@ function renderWalls() {
         ctx.fillStyle =
           "rgba(255,210,90,.65)";
 
+
         ctx.fillRect(
           x,
           top,
@@ -3627,6 +4146,7 @@ function renderWalls() {
 
         ctx.fillStyle =
           "rgba(255,205,30,.8)";
+
 
         ctx.fillRect(
           x,
@@ -3662,10 +4182,12 @@ function renderWalls() {
       let r =
         brightness;
 
+
       let g =
         Math.floor(
           brightness*.76
         );
+
 
       let b =
         Math.floor(
@@ -3703,6 +4225,7 @@ function renderWalls() {
         ctx.fillStyle =
           "rgba(20,20,20,.35)";
 
+
         ctx.fillRect(
           x,
           top,
@@ -3719,6 +4242,7 @@ function renderWalls() {
 
         ctx.fillStyle =
           "rgba(0,0,0,.22)";
+
 
         ctx.fillRect(
           x,
@@ -3740,7 +4264,7 @@ function renderWalls() {
 
 
 /* =====================================================
-   RENDER
+   GAME RENDER
    ===================================================== */
 
 function render() {
@@ -3794,6 +4318,627 @@ function render() {
 
 
 /* =====================================================
+   AUTOMAP
+   ===================================================== */
+
+const mapCanvas =
+  document.getElementById(
+    "map-canvas"
+  );
+
+
+const mapCtx =
+  mapCanvas.getContext(
+    "2d"
+  );
+
+
+mapCtx.imageSmoothingEnabled =
+  false;
+
+
+function resizeMapCanvas() {
+
+  const rect =
+    mapCanvas.getBoundingClientRect();
+
+
+  const size =
+    Math.max(
+      250,
+      Math.floor(
+        Math.min(
+          rect.width,
+          rect.height
+        )
+      )
+    );
+
+
+  mapCanvas.width =
+    size;
+
+
+  mapCanvas.height =
+    size;
+
+}
+
+
+function drawAutomap() {
+
+  resizeMapCanvas();
+
+
+  const width =
+    mapCanvas.width;
+
+
+  const height =
+    mapCanvas.height;
+
+
+  mapCtx.fillStyle =
+    "#020202";
+
+
+  mapCtx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  const rows =
+    map.length;
+
+
+  const cols =
+    map[0].length;
+
+
+  const cell =
+    Math.min(
+      width / cols,
+      height / rows
+    );
+
+
+  const offsetX =
+    (
+      width -
+      cols * cell
+    ) / 2;
+
+
+  const offsetY =
+    (
+      height -
+      rows * cell
+    ) / 2;
+
+
+  /*
+    Draw discovered tiles.
+    */
+
+  for (
+    let y = 0;
+    y < rows;
+    y++
+  ) {
+
+    for (
+      let x = 0;
+      x < cols;
+      x++
+    ) {
+
+      if (
+        !discovered[y][x]
+      )
+        continue;
+
+
+      const tile =
+        map[y][x];
+
+
+      if (
+        tile === 1
+      ) {
+
+        mapCtx.fillStyle =
+          "#565656";
+
+      }
+
+      else if (
+        tile === 3
+      ) {
+
+        mapCtx.fillStyle =
+          door.open
+            ? "#202020"
+            : "#ff9c22";
+
+      }
+
+      else {
+
+        mapCtx.fillStyle =
+          "#181818";
+
+      }
+
+
+      mapCtx.fillRect(
+        offsetX +
+        x * cell,
+        offsetY +
+        y * cell,
+        Math.ceil(cell),
+        Math.ceil(cell)
+      );
+
+
+      /*
+        Subtle floor grid.
+        */
+
+      if (
+        tile !== 1
+      ) {
+
+        mapCtx.strokeStyle =
+          "#252525";
+
+        mapCtx.lineWidth =
+          1;
+
+        mapCtx.strokeRect(
+          offsetX +
+          x * cell,
+          offsetY +
+          y * cell,
+          cell,
+          cell
+        );
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    Key.
+    Only show once the tile containing the key
+    has been discovered.
+    */
+
+  if (
+    !key.collected &&
+    tileDiscovered(
+      key.x,
+      key.y
+    )
+  ) {
+
+    drawMapMarker(
+      key.x,
+      key.y,
+      "#ffd52f",
+      cell,
+      offsetX,
+      offsetY,
+      0.24
+    );
+
+  }
+
+
+  /*
+    Door.
+    */
+
+  if (
+    tileDiscovered(
+      door.x,
+      door.y
+    )
+  ) {
+
+    drawMapMarker(
+      door.x,
+      door.y,
+      door.open
+        ? "#555"
+        : "#ff9c22",
+      cell,
+      offsetX,
+      offsetY,
+      .28
+    );
+
+  }
+
+
+  /*
+    Exit.
+    */
+
+  if (
+    exit.active &&
+    tileDiscovered(
+      exit.x,
+      exit.y
+    )
+  ) {
+
+    drawMapMarker(
+      exit.x,
+      exit.y,
+      "#55ff55",
+      cell,
+      offsetX,
+      offsetY,
+      .27
+    );
+
+  }
+
+
+  /*
+    Enemies.
+
+    Development only.
+    */
+
+  if (
+    SHOW_ENEMIES_ON_MAP
+  ) {
+
+    for (
+      const enemy of enemies
+    ) {
+
+      if (
+        !enemy.alive
+      )
+        continue;
+
+
+      /*
+        For testing, enemies become visible
+        on the map only after their tile has
+        been discovered.
+
+        This means the map doesn't spoil the
+        entire level immediately.
+      */
+
+      if (
+        !tileDiscovered(
+          enemy.x,
+          enemy.y
+        )
+      )
+        continue;
+
+
+      drawMapMarker(
+        enemy.x,
+        enemy.y,
+        enemy.type ===
+          "armoured"
+          ? "#3388ff"
+          : "#ff3333",
+        cell,
+        offsetX,
+        offsetY,
+        .27
+      );
+
+    }
+
+  }
+
+
+  /*
+    Player.
+    */
+
+  drawPlayerOnMap(
+    cell,
+    offsetX,
+    offsetY
+  );
+
+
+  /*
+    Map border.
+    */
+
+  mapCtx.strokeStyle =
+    "#444";
+
+
+  mapCtx.lineWidth =
+    2;
+
+
+  mapCtx.strokeRect(
+    offsetX,
+    offsetY,
+    cols * cell,
+    rows * cell
+  );
+
+}
+
+
+function tileDiscovered(
+  x,
+  y
+) {
+
+  const tx =
+    Math.floor(x);
+
+
+  const ty =
+    Math.floor(y);
+
+
+  if (
+    ty < 0 ||
+    ty >= discovered.length ||
+    tx < 0 ||
+    tx >= discovered[0].length
+  )
+    return false;
+
+
+  return discovered[ty][tx];
+
+}
+
+
+function drawMapMarker(
+  x,
+  y,
+  color,
+  cell,
+  offsetX,
+  offsetY,
+  radius
+) {
+
+  const px =
+    offsetX +
+    (
+      x + .5
+    ) *
+    cell;
+
+
+  const py =
+    offsetY +
+    (
+      y + .5
+    ) *
+    cell;
+
+
+  mapCtx.fillStyle =
+    color;
+
+
+  mapCtx.beginPath();
+
+
+  mapCtx.arc(
+    px,
+    py,
+    Math.max(
+      3,
+      cell * radius
+    ),
+    0,
+    Math.PI*2
+  );
+
+
+  mapCtx.fill();
+
+}
+
+
+function drawPlayerOnMap(
+  cell,
+  offsetX,
+  offsetY
+) {
+
+  const px =
+    offsetX +
+    player.x *
+    cell;
+
+
+  const py =
+    offsetY +
+    player.y *
+    cell;
+
+
+  const radius =
+    Math.max(
+      4,
+      cell*.28
+    );
+
+
+  mapCtx.fillStyle =
+    "#55ff55";
+
+
+  mapCtx.beginPath();
+
+
+  mapCtx.arc(
+    px,
+    py,
+    radius,
+    0,
+    Math.PI*2
+  );
+
+
+  mapCtx.fill();
+
+
+  /*
+    Facing direction.
+    */
+
+  const length =
+    cell*.65;
+
+
+  mapCtx.strokeStyle =
+    "#55ff55";
+
+
+  mapCtx.lineWidth =
+    Math.max(
+      2,
+      cell*.12
+    );
+
+
+  mapCtx.beginPath();
+
+
+  mapCtx.moveTo(
+    px,
+    py
+  );
+
+
+  mapCtx.lineTo(
+    px +
+    Math.cos(
+      player.angle
+    ) *
+    length,
+    py +
+    Math.sin(
+      player.angle
+    ) *
+    length
+  );
+
+
+  mapCtx.stroke();
+
+}
+
+
+/* =====================================================
+   MAP OPEN / CLOSE
+   ===================================================== */
+
+const mapScreen =
+  document.getElementById(
+    "map-screen"
+  );
+
+
+const mapButton =
+  document.getElementById(
+    "map-button"
+  );
+
+
+const closeMap =
+  document.getElementById(
+    "close-map"
+  );
+
+
+function openMap() {
+
+  if (
+    gameOver ||
+    missionComplete
+  )
+    return;
+
+
+  mapOpen =
+    true;
+
+
+  paused =
+    true;
+
+
+  mapScreen.classList.add(
+    "visible"
+  );
+
+
+  drawAutomap();
+
+}
+
+
+function closeMapScreen() {
+
+  mapOpen =
+    false;
+
+
+  paused =
+    false;
+
+
+  mapScreen.classList.remove(
+    "visible"
+  );
+
+}
+
+
+mapButton.addEventListener(
+  "pointerdown",
+  e => {
+
+    e.preventDefault();
+
+    openMap();
+
+  }
+);
+
+
+closeMap.addEventListener(
+  "pointerdown",
+  e => {
+
+    e.preventDefault();
+
+    closeMapScreen();
+
+  }
+);
+
+
+/* =====================================================
    PAUSE
    ===================================================== */
 
@@ -3801,6 +4946,7 @@ const pauseScreen =
   document.getElementById(
     "pause-screen"
   );
+
 
 document
   .getElementById("pause")
@@ -3810,7 +4956,16 @@ document
 
       e.preventDefault();
 
-      paused = true;
+
+      if (
+        mapOpen
+      )
+        return;
+
+
+      paused =
+        true;
+
 
       pauseScreen.classList.add(
         "visible"
@@ -3818,6 +4973,7 @@ document
 
     }
   );
+
 
 document
   .getElementById("resume")
@@ -3827,7 +4983,10 @@ document
 
       e.preventDefault();
 
-      paused = false;
+
+      paused =
+        false;
+
 
       pauseScreen.classList.remove(
         "visible"
@@ -3841,16 +5000,46 @@ document
    RESTART
    ===================================================== */
 
+function resetDiscovery() {
+
+  for (
+    let y = 0;
+    y < discovered.length;
+    y++
+  ) {
+
+    for (
+      let x = 0;
+      x < discovered[y].length;
+      x++
+    ) {
+
+      discovered[y][x] =
+        false;
+
+    }
+
+  }
+
+
+  revealMapAroundPlayer();
+
+}
+
+
 function restartGame() {
 
   player.x =
     player.startX;
 
+
   player.y =
     player.startY;
 
+
   player.angle =
     0;
+
 
   player.health =
     100;
@@ -3859,8 +5048,10 @@ function restartGame() {
   key.collected =
     false;
 
+
   door.open =
     false;
+
 
   exit.active =
     false;
@@ -3873,17 +5064,22 @@ function restartGame() {
     enemy.x =
       enemy.startX;
 
+
     enemy.y =
       enemy.startY;
+
 
     enemy.health =
       enemy.maxHealth;
 
+
     enemy.alive =
       true;
 
+
     enemy.hitTimer =
       0;
+
 
     enemy.attackTimer =
       0;
@@ -3904,12 +5100,14 @@ function restartGame() {
   weapons.pistol.ammo =
     weapons.pistol.magazineSize;
 
+
   weapons.pistol.reserveAmmo =
     48;
 
 
   weapons.shotgun.ammo =
     weapons.shotgun.magazineSize;
+
 
   weapons.shotgun.reserveAmmo =
     18;
@@ -3918,6 +5116,7 @@ function restartGame() {
   currentWeapon =
     "pistol";
 
+
   weapon =
     weapons.pistol;
 
@@ -3925,14 +5124,18 @@ function restartGame() {
   weapon.fireTimer =
     0;
 
+
   weapon.reloadTimer =
     0;
+
 
   weapon.reloading =
     false;
 
+
   weapon.recoil =
     0;
+
 
   weapon.muzzleFlash =
     0;
@@ -3941,11 +5144,22 @@ function restartGame() {
   gameOver =
     false;
 
+
   missionComplete =
     false;
 
+
   paused =
     false;
+
+
+  mapOpen =
+    false;
+
+
+  mapScreen.classList.remove(
+    "visible"
+  );
 
 
   document
@@ -3966,7 +5180,11 @@ function restartGame() {
     );
 
 
+  resetDiscovery();
+
+
   updateHUD();
+
 
   updateObjective();
 
@@ -4010,14 +5228,15 @@ function update(delta) {
   if (
     gameOver ||
     missionComplete ||
-    paused
+    paused ||
+    mapOpen
   )
     return;
 
 
   /*
     LOOK
-  */
+    */
 
   lookVelocity +=
     (
@@ -4032,7 +5251,7 @@ function update(delta) {
 
   /*
     WEAPON
-  */
+    */
 
   weapon.fireTimer =
     Math.max(
@@ -4060,7 +5279,7 @@ function update(delta) {
 
   /*
     RELOAD
-  */
+    */
 
   if (
     weapon.reloading
@@ -4112,10 +5331,11 @@ function update(delta) {
 
   /*
     MOVEMENT
-  */
+    */
 
   let forward =
     -input.moveY;
+
 
   let strafe =
     input.moveX;
@@ -4135,6 +5355,7 @@ function update(delta) {
     forward /=
       length;
 
+
     strafe /=
       length;
 
@@ -4145,6 +5366,7 @@ function update(delta) {
     Math.cos(
       player.angle
     );
+
 
   const sin =
     Math.sin(
@@ -4173,7 +5395,7 @@ function update(delta) {
 
   /*
     HOLD FIRE
-  */
+    */
 
   if (
     input.firing
@@ -4182,6 +5404,7 @@ function update(delta) {
 
 
   updatePickups();
+
 
   updateEnemies(
     delta
@@ -4216,6 +5439,7 @@ function gameLoop(time) {
 
   update(delta);
 
+
   render();
 
 
@@ -4229,6 +5453,8 @@ function gameLoop(time) {
 /* =====================================================
    START
    ===================================================== */
+
+revealMapAroundPlayer();
 
 updateHUD();
 
