@@ -677,9 +677,7 @@ const weapons = {
 
     fireCooldown: .28,
 
-    reloadTime: 1.2,
-
-    sound: "pistol"
+    reloadTime: 1.2
 
   },
 
@@ -701,9 +699,7 @@ const weapons = {
 
     fireCooldown: .75,
 
-    reloadTime: 1.5,
-
-    sound: "shotgun"
+    reloadTime: 1.5
 
   }
 
@@ -1474,10 +1470,6 @@ function fireWeapon() {
   updateHUD();
 
 
-  /*
-    PELLETS
-  */
-
   for (
     let pellet = 0;
     pellet <
@@ -1618,11 +1610,6 @@ function firePellet() {
     closestEnemy
   ) {
 
-    /*
-      Shotgun damage falls off
-      with distance.
-    */
-
     let damage =
       weapon.damage;
 
@@ -1658,9 +1645,6 @@ function firePellet() {
 
       closestEnemy.alive =
         false;
-
-      closestEnemy.deathTimer =
-        .35;
 
       showMessage(
         "ENEMY DOWN"
@@ -2141,6 +2125,12 @@ function updateEnemies(
         );
 
 
+      if (
+        length <= 0
+      )
+        continue;
+
+
       const moveX =
         dx /
         length *
@@ -2172,16 +2162,28 @@ function updateEnemies(
         );
 
 
-      const visible =
+      const wallDistance =
         enemyRay(
           enemy,
           angle
-        ) >=
-        distance;
+        );
+
+
+      const visible =
+        wallDistance >=
+        distance - 0.12;
+
+
+      const enemyInWall =
+        isWall(
+          enemy.x,
+          enemy.y
+        );
 
 
       if (
         visible &&
+        !enemyInWall &&
         enemy.attackTimer <= 0
       ) {
 
@@ -2211,6 +2213,16 @@ function moveEnemy(
   dy
 ) {
 
+  /*
+    Give enemies a physical radius.
+    This prevents their centre point
+    getting pushed into walls.
+  */
+
+  const radius =
+    0.22;
+
+
   const nx =
     enemy.x + dx;
 
@@ -2218,24 +2230,62 @@ function moveEnemy(
     enemy.y + dy;
 
 
+  /*
+    X movement
+  */
+
   if (
     !isWall(
-      nx,
+      nx + radius,
       enemy.y
+    ) &&
+    !isWall(
+      nx - radius,
+      enemy.y
+    ) &&
+    !isWall(
+      nx,
+      enemy.y + radius
+    ) &&
+    !isWall(
+      nx,
+      enemy.y - radius
     )
-  )
+  ) {
+
     enemy.x =
       nx;
 
+  }
+
+
+  /*
+    Y movement
+  */
 
   if (
     !isWall(
-      enemy.x,
+      enemy.x + radius,
       ny
+    ) &&
+    !isWall(
+      enemy.x - radius,
+      ny
+    ) &&
+    !isWall(
+      enemy.x,
+      ny + radius
+    ) &&
+    !isWall(
+      enemy.x,
+      ny - radius
     )
-  )
+  ) {
+
     enemy.y =
       ny;
+
+  }
 
 }
 
@@ -2707,6 +2757,21 @@ function renderEnemy(
     return;
 
 
+  /*
+    Final safety check.
+    An enemy inside a wall cannot
+    be rendered or attack.
+  */
+
+  if (
+    isWall(
+      enemy.x,
+      enemy.y
+    )
+  )
+    return;
+
+
   const size =
     Math.min(
       canvas.height*.8,
@@ -2723,10 +2788,6 @@ function renderEnemy(
   const hurt =
     enemy.hitTimer > 0;
 
-
-  /*
-    ARMOUR TYPE
-  */
 
   if (
     enemy.type ===
@@ -2822,10 +2883,6 @@ function renderEnemy(
 
   else {
 
-    /*
-      STANDARD GRUNT
-    */
-
     ctx.fillStyle =
       hurt
         ? "#fff"
@@ -2913,10 +2970,6 @@ function renderEnemy(
 
   }
 
-
-  /*
-    HEALTH BAR
-  */
 
   const barWidth =
     size*.72;
@@ -3112,10 +3165,6 @@ function renderShotgun(
     height;
 
 
-  /*
-    STOCK
-  */
-
   ctx.fillStyle =
     "#633d23";
 
@@ -3127,10 +3176,6 @@ function renderShotgun(
     gunHeight*.38
   );
 
-
-  /*
-    BODY
-  */
 
   ctx.fillStyle =
     "#252525";
@@ -3144,10 +3189,6 @@ function renderShotgun(
     gunHeight*.3
   );
 
-
-  /*
-    DOUBLE BARREL
-  */
 
   ctx.fillStyle =
     "#111";
@@ -3171,10 +3212,6 @@ function renderShotgun(
     gunHeight*.75
   );
 
-
-  /*
-    GRIP
-  */
 
   ctx.fillStyle =
     "#633d23";
