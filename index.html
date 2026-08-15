@@ -339,6 +339,88 @@
     }
 
     /* =========================
+       DAMAGE FLASH
+       ========================= */
+
+    #damage-flash {
+      position: absolute;
+      inset: 0;
+
+      z-index: 25;
+
+      background: rgba(255,0,0,0.35);
+
+      pointer-events: none;
+
+      opacity: 0;
+      transition: opacity 0.08s linear;
+    }
+
+    /* =========================
+       DEATH SCREEN
+       ========================= */
+
+    #death-screen {
+      position: absolute;
+      inset: 0;
+
+      z-index: 110;
+
+      display: none;
+
+      justify-content: center;
+      align-items: center;
+
+      background: rgba(60,0,0,0.9);
+
+      color: white;
+
+      text-align: center;
+    }
+
+    #death-screen.visible {
+      display: flex;
+    }
+
+    .death-panel {
+      width: 75vw;
+      max-width: 420px;
+
+      padding: 30px;
+
+      background: #100000;
+
+      border: 2px solid #700;
+      border-radius: 10px;
+    }
+
+    .death-panel h1 {
+      margin-top: 0;
+
+      color: #f22;
+
+      font-size: 32px;
+
+      letter-spacing: 5px;
+    }
+
+    #restart {
+      margin-top: 15px;
+
+      padding: 14px 30px;
+
+      border: 0;
+      border-radius: 6px;
+
+      background: #333;
+
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    /* =========================
        PAUSE SCREEN
        ========================= */
 
@@ -405,6 +487,8 @@
   <canvas id="screen"></canvas>
 
   <div id="look-zone"></div>
+
+  <div id="damage-flash"></div>
 
   <div id="crosshair"></div>
 
@@ -482,6 +566,24 @@
 
   </div>
 
+  <div id="death-screen">
+
+    <div class="death-panel">
+
+      <h1>YOU DIED</h1>
+
+      <p>
+        The facility has claimed another victim.
+      </p>
+
+      <button id="restart">
+        RESTART
+      </button>
+
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -521,12 +623,6 @@
      WORLD
      ===================================================== */
 
-  /*
-    0 = empty
-    1 = wall
-    2 = doorway
-  */
-
   const map = [
 
     [1,1,1,1,1,1,1,1,1,1],
@@ -552,9 +648,6 @@
   ];
 
 
-  const TILE = 1;
-
-
   /* =====================================================
      PLAYER
      ===================================================== */
@@ -565,11 +658,17 @@
 
     y: 7.5,
 
+    startX: 2.5,
+
+    startY: 7.5,
+
     angle: 0,
 
     moveSpeed: 2.4,
 
-    turnSpeed: 0.0007
+    turnSpeed: 0.0007,
+
+    health: 100
 
   };
 
@@ -584,11 +683,36 @@
 
     y: 3.5,
 
+    startX: 7.5,
+
+    startY: 3.5,
+
     alive: true,
 
-    hitTimer: 0
+    hitTimer: 0,
+
+    attackTimer: 0,
+
+    attackCooldown: 1.2,
+
+    speed: 0.65,
+
+    attackRange: 1.5,
+
+    detectionRange: 8
 
   };
+
+
+  /* =====================================================
+     GAME STATE
+     ===================================================== */
+
+  let ammo = 50;
+
+  let paused = false;
+
+  let gameOver = false;
 
 
   /* =====================================================
@@ -825,7 +949,7 @@
      COLLISION
      ===================================================== */
 
-  function isWall(x,y) {
+  function isWall(x, y) {
 
     const mapX =
       Math.floor(x);
@@ -861,7 +985,7 @@
       player.y + dy;
 
 
-    if (!isWall(newX,player.y)) {
+    if (!isWall(newX, player.y)) {
 
       player.x =
         newX;
@@ -869,7 +993,7 @@
     }
 
 
-    if (!isWall(player.x,newY)) {
+    if (!isWall(player.x, newY)) {
 
       player.y =
         newY;
@@ -880,13 +1004,36 @@
 
 
   /* =====================================================
+     DISTANCE
+     ===================================================== */
+
+  function distanceBetween(
+    x1,
+    y1,
+    x2,
+    y2
+  ) {
+
+    const dx =
+      x2 - x1;
+
+    const dy =
+      y2 - y1;
+
+    return Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
+
+  }
+
+
+  /* =====================================================
      FIRE
      ===================================================== */
 
   const fireButton =
     document.getElementById("fire");
-
-  let ammo = 50;
 
 
   fireButton.addEventListener(
@@ -936,6 +1083,9 @@
 
 
   function fireWeapon() {
+
+    if (gameOver)
+      return;
 
     if (ammo <= 0)
       return;
@@ -1003,9 +1153,8 @@
 
 
     /*
-      If the enemy is roughly
-      in the centre of the screen,
-      the shot hits.
+      The enemy must be roughly
+      in the centre of the crosshair.
     */
 
     if (
@@ -1042,7 +1191,9 @@
 
       setTimeout(
         () => {
+
           input.use = false;
+
         },
         150
       );
@@ -1065,8 +1216,6 @@
     document.getElementById(
       "pause-screen"
     );
-
-  let paused = false;
 
 
   pause.addEventListener(
@@ -1102,7 +1251,86 @@
 
 
   /* =====================================================
-     WEAPONS
+     RESTART
+     ===================================================== */
+
+  const deathScreen =
+    document.getElementById(
+      "death-screen"
+    );
+
+  const restart =
+    document.getElementById(
+      "restart"
+    );
+
+
+  restart.addEventListener(
+    "pointerdown",
+    event => {
+
+      event.preventDefault();
+
+      restartGame();
+
+    }
+  );
+
+
+  function restartGame() {
+
+    player.x =
+      player.startX;
+
+    player.y =
+      player.startY;
+
+    player.angle =
+      0;
+
+    player.health =
+      100;
+
+    enemy.x =
+      enemy.startX;
+
+    enemy.y =
+      enemy.startY;
+
+    enemy.alive =
+      true;
+
+    enemy.attackTimer =
+      0;
+
+    ammo =
+      50;
+
+    document.getElementById(
+      "health"
+    ).textContent =
+      player.health;
+
+    document.getElementById(
+      "ammo"
+    ).textContent =
+      ammo;
+
+    gameOver =
+      false;
+
+    paused =
+      false;
+
+    deathScreen.classList.remove(
+      "visible"
+    );
+
+  }
+
+
+  /* =====================================================
+     WEAPON BUTTONS
      ===================================================== */
 
   document
@@ -1130,6 +1358,249 @@
 
 
   /* =====================================================
+     ENEMY AI
+     ===================================================== */
+
+  function updateEnemy(
+    delta
+  ) {
+
+    if (!enemy.alive)
+      return;
+
+
+    enemy.attackTimer -=
+      delta;
+
+
+    const distance =
+      distanceBetween(
+        enemy.x,
+        enemy.y,
+        player.x,
+        player.y
+      );
+
+
+    /*
+      Enemy starts chasing
+      when you get close enough.
+    */
+
+    if (
+      distance <
+      enemy.detectionRange
+    ) {
+
+      if (
+        distance >
+        enemy.attackRange
+      ) {
+
+        const dx =
+          player.x -
+          enemy.x;
+
+        const dy =
+          player.y -
+          enemy.y;
+
+        const length =
+          Math.sqrt(
+            dx * dx +
+            dy * dy
+          );
+
+
+        if (length > 0) {
+
+          const moveX =
+            dx /
+            length *
+            enemy.speed *
+            delta;
+
+          const moveY =
+            dy /
+            length *
+            enemy.speed *
+            delta;
+
+
+          moveEnemy(
+            moveX,
+            moveY
+          );
+
+        }
+
+      }
+
+      else {
+
+        /*
+          Enemy is close enough
+          to attack.
+        */
+
+        if (
+          enemy.attackTimer <= 0
+        ) {
+
+          damagePlayer();
+
+          enemy.attackTimer =
+            enemy.attackCooldown;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /* =====================================================
+     ENEMY MOVEMENT
+     ===================================================== */
+
+  function moveEnemy(
+    dx,
+    dy
+  ) {
+
+    const newX =
+      enemy.x + dx;
+
+    const newY =
+      enemy.y + dy;
+
+
+    /*
+      Simple wall collision.
+    */
+
+    if (
+      !isWall(
+        newX,
+        enemy.y
+      )
+    ) {
+
+      enemy.x =
+        newX;
+
+    }
+
+
+    if (
+      !isWall(
+        enemy.x,
+        newY
+      )
+    ) {
+
+      enemy.y =
+        newY;
+
+    }
+
+  }
+
+
+  /* =====================================================
+     PLAYER DAMAGE
+     ===================================================== */
+
+  function damagePlayer() {
+
+    if (gameOver)
+      return;
+
+
+    player.health -=
+      10;
+
+
+    if (
+      player.health <
+      0
+    ) {
+
+      player.health =
+        0;
+
+    }
+
+
+    document.getElementById(
+      "health"
+    ).textContent =
+      player.health;
+
+
+    flashDamage();
+
+
+    if (
+      player.health <= 0
+    ) {
+
+      killPlayer();
+
+    }
+
+  }
+
+
+  function flashDamage() {
+
+    const flash =
+      document.getElementById(
+        "damage-flash"
+      );
+
+
+    flash.style.opacity =
+      "1";
+
+
+    setTimeout(
+      () => {
+
+        flash.style.opacity =
+          "0";
+
+      },
+      100
+    );
+
+  }
+
+
+  function killPlayer() {
+
+    gameOver =
+      true;
+
+    input.moveX =
+      0;
+
+    input.moveY =
+      0;
+
+    input.firing =
+      false;
+
+    deathScreen.classList.add(
+      "visible"
+    );
+
+  }
+
+
+  /* =====================================================
      RAYCASTING
      ===================================================== */
 
@@ -1144,31 +1615,40 @@
     const step =
       0.025;
 
-    let distance = 0;
+    let distance =
+      0;
+
 
     while (
       distance < 20
     ) {
 
-      distance += step;
+      distance +=
+        step;
+
 
       const x =
         player.x +
         Math.cos(angle) *
         distance;
 
+
       const y =
         player.y +
         Math.sin(angle) *
         distance;
 
-      if (isWall(x,y)) {
+
+      if (
+        isWall(x, y)
+      ) {
 
         return distance;
 
       }
 
     }
+
 
     return 20;
 
@@ -1188,7 +1668,9 @@
       canvas.height;
 
 
-    /* Sky */
+    /*
+      Sky
+    */
 
     ctx.fillStyle =
       "#161616";
@@ -1201,7 +1683,9 @@
     );
 
 
-    /* Floor */
+    /*
+      Floor
+    */
 
     ctx.fillStyle =
       "#3b3028";
@@ -1215,7 +1699,7 @@
 
 
     /*
-      Wall columns
+      Walls
     */
 
     const rayCount =
@@ -1232,17 +1716,21 @@
         x / width -
         0.5;
 
+
       const rayAngle =
         player.angle +
         cameraX *
         FOV;
 
+
       let distance =
-        castRay(rayAngle);
+        castRay(
+          rayAngle
+        );
 
 
       /*
-        Remove fish-eye effect
+        Fish-eye correction
       */
 
       distance *=
@@ -1261,8 +1749,10 @@
 
 
       const top =
-        (height -
-        wallHeight) / 2;
+        (
+          height -
+          wallHeight
+        ) / 2;
 
 
       const brightness =
@@ -1297,16 +1787,22 @@
     }
 
 
-    /* Enemy */
+    /*
+      Enemy
+    */
 
-    if (enemy.alive) {
+    if (
+      enemy.alive
+    ) {
 
       renderEnemy();
 
     }
 
 
-    /* Weapon */
+    /*
+      Weapon
+    */
 
     renderWeapon();
 
@@ -1327,6 +1823,7 @@
       enemy.y -
       player.y;
 
+
     const distance =
       Math.sqrt(
         dx * dx +
@@ -1343,7 +1840,8 @@
 
 
     while (
-      angle > Math.PI
+      angle >
+      Math.PI
     ) {
 
       angle -=
@@ -1353,7 +1851,8 @@
 
 
     while (
-      angle < -Math.PI
+      angle <
+      -Math.PI
     ) {
 
       angle +=
@@ -1393,6 +1892,27 @@
       size * 0.5;
 
 
+    /*
+      Shadow
+    */
+
+    ctx.fillStyle =
+      "#080808";
+
+    ctx.fillRect(
+      screenX -
+      size * 0.3,
+      top +
+      size * 0.67,
+      size * 0.6,
+      size * 0.12
+    );
+
+
+    /*
+      Body
+    */
+
     ctx.fillStyle =
       "#8b1515";
 
@@ -1406,6 +1926,10 @@
     );
 
 
+    /*
+      Head
+    */
+
     ctx.fillStyle =
       "#b52222";
 
@@ -1417,6 +1941,10 @@
       size * 0.25
     );
 
+
+    /*
+      Eyes
+    */
 
     ctx.fillStyle =
       "#fff";
@@ -1438,6 +1966,28 @@
       size * 0.06,
       size * 0.06
     );
+
+
+    /*
+      Hit flash
+    */
+
+    if (
+      enemy.hitTimer > 0
+    ) {
+
+      ctx.fillStyle =
+        "rgba(255,255,255,0.7)";
+
+      ctx.fillRect(
+        screenX -
+        size * 0.3,
+        top,
+        size * 0.6,
+        size * 0.75
+      );
+
+    }
 
   }
 
@@ -1499,59 +2049,24 @@
 
 
   /* =====================================================
-     GAME LOOP
-     ===================================================== */
-
-  let lastTime =
-    performance.now();
-
-
-  function gameLoop(
-    time
-  ) {
-
-    const delta =
-      Math.min(
-        0.05,
-        (
-          time -
-          lastTime
-        ) / 1000
-      );
-
-
-    lastTime =
-      time;
-
-
-    if (!paused) {
-
-      update(delta);
-
-      render();
-
-    }
-
-
-    requestAnimationFrame(
-      gameLoop
-    );
-
-  }
-
-
-  /* =====================================================
      UPDATE
      ===================================================== */
 
-  function update(delta) {
+  function update(
+    delta
+  ) {
+
+    if (gameOver)
+      return;
+
 
     /*
-      Forward/backward
+      Forward and backward
     */
 
     const forward =
       -input.moveY;
+
 
     /*
       Strafing
@@ -1596,23 +2111,58 @@
     );
 
 
-    /*
-      Clear look input.
-    */
-
-    input.lookX = 0;
-
-    input.lookY = 0;
+    updateEnemy(
+      delta
+    );
 
 
-    if (
-      enemy.hitTimer > 0
-    ) {
+    input.lookX =
+      0;
 
-      enemy.hitTimer -=
-        delta;
+    input.lookY =
+      0;
+
+  }
+
+
+  /* =====================================================
+     GAME LOOP
+     ===================================================== */
+
+  let lastTime =
+    performance.now();
+
+
+  function gameLoop(
+    time
+  ) {
+
+    const delta =
+      Math.min(
+        0.05,
+        (
+          time -
+          lastTime
+        ) / 1000
+      );
+
+
+    lastTime =
+      time;
+
+
+    if (!paused) {
+
+      update(delta);
+
+      render();
 
     }
+
+
+    requestAnimationFrame(
+      gameLoop
+    );
 
   }
 
